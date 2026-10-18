@@ -115,20 +115,6 @@ a{color:inherit}
 .hint-default{margin:0 14px 10px;background:#FFF8E8;border:1px dashed #F0D9A8;border-radius:var(--r-md);padding:9px 12px;font-size:12.5px;color:#8A6A3A;display:none}
 .hint-default.on{display:block}
 
-/* ---------- 微信内提示卡（只在微信里出现） ---------- */
-.wxtip{
-  background:linear-gradient(145deg,#FFF3E6,#FFE9DC);
-  border:1px solid #F6D9BE;border-radius:var(--r-lg);
-  padding:13px 14px;margin:12px 0 0;box-shadow:var(--sh-1);
-}
-.wxtip-h{font-size:14.5px;font-weight:800;color:#B57A20;display:flex;align-items:center;gap:6px}
-.wxtip p{margin:7px 0 0;font-size:12.5px;color:#7A6039;line-height:1.7}
-.wxtip b{color:#8A5A16}
-.wxtip-b{display:flex;gap:8px;margin-top:11px}
-.wxtip-b button{flex:1;border:1px solid #F0D3AC;background:#fff;border-radius:var(--r-md);padding:10px;font-size:13px;font-weight:700;color:#8A5A16;font-family:inherit;min-height:44px}
-.wxtip-b button.pri{background:#E9A23B;border-color:#E9A23B;color:#fff}
-.wxtip-b button:active{transform:scale(.97)}
-
 /* ---------- TOP3 待办卡 ---------- */
 .todo{
   background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
@@ -351,18 +337,6 @@ a{color:inherit}
 <div class="atmos"></div>
 <div class="grain"></div>
 
-<div class="wrap" id="wxTip" style="display:none">
-  <div class="wxtip">
-    <div class="wxtip-h">📱 你在微信里打开 —— 全部功能都能用</div>
-    <p>但微信内<b>加不了手机桌面图标</b>，也<b>断网打不开</b>（微信不保存页面，还会定期清缓存，勾过的进度可能丢）。</p>
-    <p>最快打开方式：右上角 <b>···</b> → <b>收藏</b>，之后从「我 → 收藏」一秒开；也可以发到<b>文件传输助手</b>里置顶，或<b>发给老婆</b>。</p>
-    <div class="wxtip-b">
-      <button id="wxBackup">📋 复制进度备份码</button>
-      <button class="pri" id="wxOk">知道了，别再提示</button>
-    </div>
-  </div>
-</div>
-
 <header class="wrap">
   <div class="hero rise">
     <div class="hero-baby" aria-hidden="true">👶</div>
@@ -523,10 +497,12 @@ a{color:inherit}
         <dt>📱 在微信里用（你现在的用法）</dt>
         <dd>· <b>右上角 ··· → 收藏</b>：之后从「我 → 收藏」一秒打开，这是最快的方式</dd>
         <dd>· 或发到<b>文件传输助手</b>并置顶，也可以<b>直接发给老婆</b>，她点开就能用</dd>
-        <dd>· <b>微信会定期清缓存</b>，勾过的进度可能丢 → 记得偶尔点顶部「📋 复制进度备份码」，粘到备忘录或发给对方</dd>
+        <dd>· <b>微信会缓存旧页面</b>：我更新后你打开可能还是旧的 → 在链接后面加个新版本号（比如 <b>?v=3</b>）再打开，就能强制拉到最新版</dd>
+        <dd>· <b>微信会清缓存</b>，勾过的进度可能丢 → 偶尔点下面按钮存一份备份码</dd>
         <dd>· 真丢了也别慌：「⚙ 设置 → 粘贴备份码 → 导入」，一步恢复全部进度</dd>
-        <dd>· 想要<b>断网也能开 + 桌面图标</b>：右上角 ··· → 在浏览器中打开 → 添加到主屏幕（这条是可选的）</dd>
+        <dd>· 想要<b>断网也能开 + 桌面图标</b>：右上角 ··· → 在浏览器中打开 → 添加到主屏幕（可选）</dd>
       </dl>
+      <button class="btn-line" id="wxBackup" style="display:none">📋 复制进度备份码（粘到备忘录，或发给老婆）</button>
       <dl id="webUse">
         <dt>第一步</dt><dd>用手机<b>自带浏览器</b>（iPhone 用 Safari，安卓用 Chrome）打开链接</dd>
         <dt>第二步</dt><dd>iPhone：底部「分享」→ 添加到主屏幕；安卓：右上角 ⋮ → 添加到主屏幕／安装应用</dd>
@@ -1153,12 +1129,8 @@ var inWX=false;
 (function(){
   var ua=navigator.userAgent||'';
   inWX = ua.indexOf('MicroMessenger')>-1;
-  if(inWX){
-    document.body.classList.add('in-wx');
-    if(localStorage.getItem('pg_wxread')!=='1'){
-      document.getElementById('wxTip').style.display='block';
-    }
-  }
+  // 微信内不弹任何提示卡 —— 首屏保持干净，用法说明放在「应急」页
+  if(inWX){ document.body.classList.add('in-wx'); }
 })();
 function backupCode(){
   var data={v:1,lmp:toStr(lmp),done:done,bag:bag,hosp:hosp};
@@ -1239,12 +1211,7 @@ document.addEventListener('click',function(e){
 document.getElementById('fmBtn').onclick=function(){ if(fmRun){ fmPlus(); } else { fmToggle(); } };
 document.getElementById('fmStop').onclick=function(){ if(fmRun){ fmToggle(); } };
 
-// 微信内：关掉提示 + 复制备份码（微信里不能下载文件，只能靠文本互通）
-document.getElementById('wxOk').onclick=function(){
-  localStorage.setItem('pg_wxread','1');
-  document.getElementById('wxTip').style.display='none';
-  toast('好，之后不再提示');
-};
+// 微信内不能下载文件，进度互通只能靠文本备份码
 document.getElementById('wxBackup').onclick=function(){
   copyText(backupCode(),'已复制 · 粘到备忘录，或发给老婆保存');
 };
@@ -1303,9 +1270,10 @@ document.getElementById('btnImport').onclick=function(){
 load();
 renderHero(); renderTop3(); renderHosp(); renderTL(); renderGov(); renderBag(); renderFM(); renderUC();
 if(inWX){
-  var wu=document.getElementById('wxUse'), bu=document.getElementById('webUse');
+  var wu=document.getElementById('wxUse'), bu=document.getElementById('webUse'), wb=document.getElementById('wxBackup');
   if(wu) wu.style.display='block';
   if(bu) bu.style.display='none';
+  if(wb) wb.style.display='block';
 }
 </script>
 </body>
