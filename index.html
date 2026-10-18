@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=5">
+<meta name="theme-color" content="#FFF7F1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="孕程表">
+<title>孕程表 · 上海浦东</title>
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+/* =========================================================
+   设计定调：Playful / 玩趣玩具
+   受众：零经验新手爸妈（孕早期，焦虑、需要被明确告知"下一步"）
+   底色：暖奶油 #FFF7F1（拒绝冷白与紫渐变）
+   主色：珊瑚橙 #FF7A59（孕程主线，占 60% 视觉权重）
+   强调：薄荷绿 #35C79A（只有"完成/正常"能用）+ 警示红 #E8544E（只有硬窗口能用）
+   字体：中文圆体优先（iOS 圆体 / 苹方 / 鸿蒙 / 雅黑），全系统字体栈 —— 断网也能显示，不依赖外部字体
+   记忆点：hero 右上角冲破卡片边界的宝宝 emoji + TOP3「现在要做的 3 件事」
+   ========================================================= */
+:root{
+  --bg:#FFF7F1;
+  --surface:#FFFFFF;
+  --surface-2:#FFF3EA;
+  --ink:#453730;
+  --muted:#94837A;
+  --line:#F3E4D9;
+
+  --brand:#FF7A59;      /* 主色 · 孕程 */
+  --brand-ink:#D2543A;
+  --brand-soft:#FFEDE5;
+  --go:#35C79A;         /* 强调 · 完成/正常 */
+  --go-soft:#E3F7F0;
+  --gov:#5B9BD5;        /* 办事 */
+  --gov-soft:#E8F1FA;
+  --buy:#E9A23B;        /* 待办/采购 */
+  --buy-soft:#FCF2DF;
+  --warn:#E8544E;       /* 硬窗口/危险 */
+  --warn-soft:#FDEAE9;
+  --done:#B0A49B;
+
+  --r-xl:28px; --r-lg:22px; --r-md:16px; --r-sm:11px;
+  --sp-1:5px; --sp-2:9px; --sp-3:14px; --sp-4:20px; --sp-5:32px;
+  --sh-1:0 2px 8px rgba(158,96,64,.07);
+  --sh-2:0 8px 24px rgba(158,96,64,.11);
+  --sh-3:0 20px 48px rgba(158,96,64,.15);
+  --ease:cubic-bezier(.16,1,.3,1);
+  --dur-1:170ms; --dur-2:340ms; --dur-3:640ms;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font:15px/1.75 "Yuanti SC","YuanTi SC","PingFang SC","HarmonyOS Sans SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  padding-bottom:calc(84px + env(safe-area-inset-bottom));
+  -webkit-font-smoothing:antialiased;
+  letter-spacing:.01em;
+}
+/* 氛围层：暖色渐变网格 + 细颗粒，替代纯色平铺 */
+.atmos{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(46rem 30rem at 8% -8%, rgba(255,138,100,.20), transparent 58%),
+    radial-gradient(36rem 26rem at 104% 4%, rgba(255,190,150,.18), transparent 55%),
+    radial-gradient(40rem 34rem at 50% 108%, rgba(120,210,185,.12), transparent 60%);
+}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.wrap{max-width:560px;margin:0 auto;padding:0 14px;position:relative;z-index:2}
+button{font-family:inherit;cursor:pointer}
+a{color:inherit}
+
+/* ---------- 入场序列（一次编排，错峰 80ms） ---------- */
+.rise{opacity:0;transform:translateY(16px);animation:rise var(--dur-3) var(--ease) forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+.d1{animation-delay:60ms}.d2{animation-delay:140ms}.d3{animation-delay:220ms}
+.d4{animation-delay:300ms}.d5{animation-delay:380ms}
+@media (prefers-reduced-motion: reduce){
+  .rise{opacity:1;transform:none;animation:none}
+  *{transition:none!important}
+}
+
+/* ---------- hero ---------- */
+.hero{
+  position:relative;overflow:visible;
+  background:linear-gradient(150deg,#FFEDE3 0%,#FFDCC9 100%);
+  border:1px solid #FFD3BC;border-radius:var(--r-xl);
+  padding:17px 17px 15px;margin:14px 0 12px;
+  box-shadow:var(--sh-2);
+}
+.hero-baby{
+  position:absolute;right:-6px;top:-22px;font-size:74px;line-height:1;
+  transform:rotate(-9deg);filter:drop-shadow(0 6px 10px rgba(200,110,70,.22));
+  animation:bob 4.5s ease-in-out infinite;pointer-events:none;
+}
+@keyframes bob{0%,100%{transform:rotate(-9deg) translateY(0)}50%{transform:rotate(-4deg) translateY(-7px)}}
+@media (prefers-reduced-motion: reduce){.hero-baby{animation:none}}
+.hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.hero-label{font-size:11.5px;color:#B87B63;letter-spacing:1.4px;font-weight:600}
+.hero-week{font-size:33px;font-weight:800;letter-spacing:-.03em;margin:1px 0 0;line-height:1.1;color:#5A3123}
+.hero-week small{font-size:15px;font-weight:700;color:#C07A5E;margin-left:7px;letter-spacing:0}
+.hero-edd{margin-top:7px;font-size:12.5px;color:#8E6A5F;line-height:1.7;max-width:78%}
+.hero-edd b{color:#5E4038;font-weight:700}
+.btn-set{
+  background:#fff;border:1px solid #FFD3BC;color:var(--brand-ink);
+  font-size:12.5px;padding:8px 13px;border-radius:99px;white-space:nowrap;
+  font-weight:700;box-shadow:var(--sh-1);min-height:34px;
+}
+.btn-set:active{transform:scale(.95)}
+.bar{height:9px;background:#FFD9C6;border-radius:99px;margin:13px 0 7px;overflow:hidden}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,#FFB490,#FF7A59);border-radius:99px;transition:width var(--dur-3) var(--ease)}
+.bar-txt{display:flex;justify-content:space-between;font-size:11.5px;color:#B0806A;font-weight:600}
+.fruit{margin-top:11px;background:rgba(255,255,255,.78);border-radius:var(--r-md);padding:9px 12px;font-size:13px;color:#7A5449;display:flex;align-items:center;gap:8px}
+.fruit em{font-style:normal;font-size:19px}
+.hint-default{margin:0 14px 10px;background:#FFF8E8;border:1px dashed #F0D9A8;border-radius:var(--r-md);padding:9px 12px;font-size:12.5px;color:#8A6A3A;display:none}
+.hint-default.on{display:block}
+
+/* ---------- TOP3 待办卡 ---------- */
+.todo{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:14px 15px 6px;margin-bottom:12px;box-shadow:var(--sh-2);
+  position:relative;overflow:hidden;
+}
+.todo::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,#FF9B78,#FF7A59)}
+.todo-h{display:flex;align-items:center;gap:7px;font-size:15px;font-weight:800;color:var(--brand-ink);margin-bottom:10px}
+.todo-h span{font-size:11.5px;font-weight:600;color:var(--muted);margin-left:auto}
+.todo-row{display:flex;gap:11px;padding:9px 0;border-top:1px dashed #F2E3D8;align-items:flex-start}
+.todo-n{
+  flex:0 0 auto;width:23px;height:23px;border-radius:50%;
+  background:var(--brand-soft);color:var(--brand-ink);
+  font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px;
+}
+.todo-row.done .todo-n{background:var(--go-soft);color:#1F8C68}
+.todo-b{flex:1;min-width:0}
+.todo-t{font-size:14.5px;font-weight:700;line-height:1.5}
+.todo-row.done .todo-t{text-decoration:line-through;color:var(--done)}
+.todo-a{font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.6}
+.todo-chip{flex:0 0 auto;font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;background:var(--brand-soft);color:var(--brand-ink);margin-top:2px}
+.todo-chip.next{background:#F2EDE8;color:#8B7F76}
+.todo-chip.late{background:var(--warn-soft);color:var(--warn)}
+.todo-empty{font-size:13px;color:var(--muted);padding:8px 0 12px}
+
+/* ---------- 医院卡 ---------- */
+.hosp{
+  background:linear-gradient(145deg,#EAF3FB 0%,#FFF6EE 100%);
+  border:1px solid #D9E7F4;border-radius:var(--r-lg);
+  padding:13px 14px;margin-bottom:12px;box-shadow:var(--sh-1);
+}
+.hosp-t{display:flex;align-items:center;gap:8px;font-size:14.5px;font-weight:800;color:#3D5C7A}
+.hosp-t .edit{font-size:11px;font-weight:600;color:#7E93A8;margin-left:auto;background:#fff;border:1px solid #D9E7F4;border-radius:99px;padding:3px 9px}
+.hosp-a{font-size:12.5px;color:#6B7B8C;margin-top:4px;line-height:1.65}
+.hosp-btns{display:flex;gap:8px;margin-top:10px}
+.hosp-btns a{flex:1;text-align:center;text-decoration:none;font-size:13.5px;font-weight:700;padding:10px 0;border-radius:var(--r-md);background:#fff;border:1px solid #D9E7F4;color:#3D5C7A;min-height:42px;display:flex;align-items:center;justify-content:center}
+.hosp-btns a.hot{background:var(--brand);border-color:var(--brand);color:#fff}
+.hosp-btns a:active{transform:scale(.97)}
+
+/* ---------- tabs ---------- */
+.tabs{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;
+  background:rgba(255,255,255,.96);backdrop-filter:blur(14px);
+  border-top:1px solid var(--line);
+  display:flex;padding:6px 2px calc(6px + env(safe-area-inset-bottom));
+  box-shadow:0 -4px 20px rgba(158,96,64,.07);
+}
+.tab{flex:1;border:0;background:none;font-size:10px;color:var(--muted);padding:5px 0;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:inherit;min-height:48px;justify-content:center}
+.tab i{font-style:normal;font-size:18px;line-height:1;filter:grayscale(1);opacity:.5;transition:transform var(--dur-2) var(--ease)}
+.tab.on{color:var(--brand-ink);font-weight:800}
+.tab.on i{filter:none;opacity:1;transform:translateY(-2px) scale(1.12)}
+.tab:active i{transform:scale(.9)}
+
+/* ---------- 搜索 & filters ---------- */
+.search{width:100%;border:1px solid var(--line);background:#fff;border-radius:99px;padding:10px 15px;font-size:14px;font-family:inherit;color:var(--ink);margin-bottom:10px;outline:none}
+.search:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+.filters{display:flex;gap:7px;overflow-x:auto;padding:2px 0 12px;-webkit-overflow-scrolling:touch}
+.filters::-webkit-scrollbar{display:none}
+.chip{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:99px;padding:6px 13px;font-size:12.5px;white-space:nowrap;font-family:inherit;min-height:32px;font-weight:600}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.chip:active{transform:scale(.95)}
+
+/* ---------- section ---------- */
+.sec{display:none}
+.sec.on{display:block;animation:fade var(--dur-2) var(--ease)}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.sec-h{font-size:12.5px;color:var(--muted);margin:16px 2px 10px;font-weight:600;line-height:1.6}
+.group-title{display:flex;align-items:center;gap:8px;margin:20px 2px 10px;font-size:14.5px;font-weight:800}
+.group-title span{font-size:11.5px;font-weight:600;color:var(--muted)}
+.group-title::after{content:"";flex:1;height:1px;background:var(--line)}
+.group-title.now{color:var(--brand-ink)}
+.group-title.now::before{content:"📍";font-size:13px}
+
+/* ---------- timeline item ---------- */
+.item{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:13px 14px;margin-bottom:10px;box-shadow:var(--sh-1);
+  display:flex;gap:11px;transition:opacity var(--dur-1),transform var(--dur-1);
+}
+.item:active{transform:scale(.985)}
+.item.done{opacity:.52}
+.item.done .it-title{text-decoration:line-through}
+.item.hard{border-color:#F7C9C5;box-shadow:0 2px 8px rgba(232,84,78,.08)}
+.item.hit{outline:2px solid var(--brand);outline-offset:1px}
+.ring{
+  flex:0 0 auto;width:23px;height:23px;border-radius:50%;border:2px solid #E4D8CF;
+  margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;background:#fff;transition:transform var(--dur-2) var(--ease);
+}
+.item.done .ring{background:var(--go);border-color:var(--go);transform:scale(1.08)}
+.it-body{flex:1;min-width:0}
+.it-week{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;margin-bottom:5px}
+.it-title{font-size:14.5px;font-weight:700;line-height:1.5}
+.it-date{font-size:12px;color:var(--muted);margin-top:3px}
+.it-ul{margin:7px 0 0;padding:0;list-style:none}
+.it-ul li{font-size:13px;color:#63554D;line-height:1.75;padding-left:13px;position:relative}
+.it-ul li::before{content:"";position:absolute;left:2px;top:10px;width:5px;height:5px;border-radius:50%;background:#EBDCD1}
+.it-ul li.hot{color:var(--brand-ink);font-weight:700}
+.it-ul li.hot::before{background:var(--brand)}
+.badge{font-size:10.5px;padding:2px 8px;border-radius:99px;font-weight:700;margin-left:5px;vertical-align:2px}
+.b-now{background:var(--brand-soft);color:var(--brand-ink)}
+.b-next{background:#F2EDE8;color:#8B7F76}
+.b-late{background:var(--warn-soft);color:var(--warn)}
+.b-done{background:var(--go-soft);color:#22886A}
+.b-lock{background:var(--warn);color:#fff}
+.c-check .it-week{background:var(--brand-soft);color:var(--brand-ink)}
+.c-gov .it-week{background:var(--gov-soft);color:#3E6E9E}
+.c-life .it-week{background:var(--go-soft);color:#22886A}
+.c-buy .it-week{background:var(--buy-soft);color:#B57A20}
+.c-alert .it-week{background:var(--warn-soft);color:var(--warn)}
+
+/* ---------- 表格 ---------- */
+.tbl{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-1);font-size:13px}
+.tbl th{background:var(--surface-2);color:#7A6A62;font-weight:700;text-align:left;padding:9px 11px;font-size:12px;border-bottom:1px solid var(--line)}
+.tbl td{padding:10px 11px;border-bottom:1px solid #F8F2EC;vertical-align:top;line-height:1.6}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td:first-child{white-space:nowrap;font-weight:700;color:#63554D}
+.tbl tr.key td{background:#FFF8F7}
+
+/* ---------- 办事卡 ---------- */
+.gov{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:14px;margin-bottom:10px;box-shadow:var(--sh-1)}
+.gov h3{margin:0 0 3px;font-size:14.5px;font-weight:800}
+.gov .meta{font-size:12px;color:#3E6E9E;font-weight:700;margin-bottom:9px}
+.gov dl{margin:0;font-size:13px}
+.gov dt{color:var(--muted);font-size:11.5px;margin-top:8px;font-weight:700}
+.gov dd{margin:2px 0 0;color:#63554D;line-height:1.7}
+.gov dd kbd{background:#F7F1EA;border-radius:5px;padding:1px 6px;font-size:12px;font-family:inherit;color:#63554D;font-weight:700}
+
+/* ---------- 待产包 ---------- */
+.bag-head{background:linear-gradient(145deg,#FFF3E2,#FFE9D4);border:1px solid #F6DFC0;border-radius:var(--r-lg);padding:13px 14px;margin-bottom:12px}
+.bag-head .n{font-size:22px;font-weight:800;color:#B57A20;letter-spacing:-.02em}
+.bag-head .n small{font-size:13px;font-weight:700;color:#9A7A50}
+.bag-bar{height:10px;background:#F7E4CB;border-radius:99px;margin:9px 0 7px;overflow:hidden}
+.bag-bar>i{display:block;height:100%;background:linear-gradient(90deg,#F5C46A,#E9A23B);border-radius:99px;transition:width var(--dur-3) var(--ease)}
+.bag-tip{font-size:12px;color:#9A7A50;line-height:1.65}
+.ck{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:4px 0;margin-bottom:10px;box-shadow:var(--sh-1)}
+.ck-row{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;border-bottom:1px solid #F9F4EE;min-height:44px}
+.ck-row:last-child{border-bottom:0}
+.ck-row:active{background:#FDF9F5}
+.ck-row .box{flex:0 0 auto;width:21px;height:21px;border:2px solid #E4D8CF;border-radius:7px;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;background:#fff;transition:transform var(--dur-2) var(--ease)}
+.ck-row.on .box{background:var(--go);border-color:var(--go);transform:scale(1.06)}
+.ck-row.on .lb{text-decoration:line-through;color:var(--done)}
+.lb{font-size:14px;line-height:1.6}
+.lb small{display:block;color:var(--muted);font-size:12px;margin-top:1px;text-decoration:none}
+.tag-go{font-size:10px;font-weight:700;background:var(--brand-soft);color:var(--brand-ink);border-radius:99px;padding:1px 7px;margin-left:6px;vertical-align:1px}
+
+/* ---------- 工具：胎动 / 宫缩 ---------- */
+.tool{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:16px 15px;margin-bottom:12px;box-shadow:var(--sh-1)}
+.tool h3{margin:0 0 3px;font-size:15px;font-weight:800;display:flex;align-items:center;gap:7px}
+.tool .sub{font-size:12.5px;color:var(--muted);line-height:1.65;margin-bottom:12px}
+.segs{display:flex;gap:8px;margin-bottom:12px}
+.seg{flex:1;border:1px solid var(--line);background:#fff;border-radius:var(--r-md);padding:8px 4px;text-align:center;font-size:12px;color:var(--muted);font-weight:700}
+.seg.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.seg b{display:block;font-size:16px;font-weight:800;margin-top:1px}
+.seg.on b{color:#fff}
+.big-btn{
+  width:132px;height:132px;margin:0 auto;border-radius:50%;border:0;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  background:radial-gradient(circle at 34% 28%,#FFA98C,#FF7A59);
+  color:#fff;box-shadow:0 10px 26px rgba(255,122,89,.36);
+  font-size:13px;font-weight:700;
+}
+.big-btn b{font-size:34px;font-weight:800;line-height:1;letter-spacing:-.03em}
+.big-btn:active{transform:scale(.93)}
+.big-btn.go{background:radial-gradient(circle at 34% 28%,#7FE0BE,#2FB98D);box-shadow:0 10px 26px rgba(47,185,141,.34)}
+.big-btn.stop{background:radial-gradient(circle at 34% 28%,#9FB4C4,#6C8399);box-shadow:0 10px 26px rgba(108,131,153,.3)}
+.t-center{text-align:center}
+.timer{font-size:13px;color:var(--muted);margin-top:11px;font-weight:700}
+.timer b{color:var(--brand-ink);font-size:15px}
+.judge{margin-top:12px;border-radius:var(--r-md);padding:11px 13px;font-size:13px;line-height:1.7;font-weight:700}
+.j-ok{background:var(--go-soft);color:#1E8A66}
+.j-wait{background:#FFF6E4;color:#9A6E20}
+.j-warn{background:var(--warn-soft);color:var(--warn)}
+.j-danger{background:var(--warn);color:#fff}
+.log{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px;font-size:12.5px;color:#63554D}
+.log-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #FAF5F0}
+.log-row:last-child{border-bottom:0}
+.log-row span:last-child{font-weight:700;color:#453730}
+.mini{font-size:12px;color:var(--muted);text-align:center;margin-top:9px}
+.btn-line{width:100%;border:1px solid var(--line);background:#fff;border-radius:var(--r-md);padding:11px;font-size:13.5px;font-weight:700;color:#63554D;margin-top:10px;min-height:44px}
+.btn-line:active{transform:scale(.98)}
+
+/* ---------- 应急 ---------- */
+.alert{background:#FFF4F3;border:1px solid #F8D3D0;border-radius:var(--r-lg);padding:14px;margin-bottom:12px}
+.alert h3{margin:0 0 8px;font-size:14.5px;color:var(--warn);font-weight:800}
+.alert ul{margin:0;padding-left:18px;font-size:13.5px;color:#63554D;line-height:1.85}
+.alert .tel{display:flex;gap:8px;margin-top:10px}
+.alert .tel a{flex:1;background:#fff;border:1px solid #F5C9C5;border-radius:var(--r-md);padding:11px;text-align:center;color:var(--warn);font-weight:800;text-decoration:none;font-size:13.5px;min-height:44px;display:flex;align-items:center;justify-content:center}
+.note{font-size:12px;color:var(--muted);line-height:1.8;background:#FBF6F1;border-radius:var(--r-md);padding:12px 14px;margin:16px 0 26px}
+.note b{color:#63554D}
+.center{text-align:center;color:var(--muted);font-size:13px;padding:26px 0}
+
+/* ---------- 弹层 ---------- */
+.mask{position:fixed;inset:0;background:rgba(60,40,32,.44);z-index:100;display:none;align-items:flex-end;justify-content:center}
+.mask.on{display:flex}
+.sheet{background:#fff;width:100%;max-width:560px;border-radius:26px 26px 0 0;padding:18px 17px calc(20px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto}
+.sheet h3{margin:0 0 4px;font-size:17px;font-weight:800}
+.sheet p{margin:0 0 13px;font-size:13px;color:var(--muted);line-height:1.7}
+.sheet label{font-size:12.5px;color:#63554D;display:block;margin-bottom:5px;font-weight:700}
+.sheet input,.sheet textarea{width:100%;border:1px solid var(--line);border-radius:var(--r-md);padding:11px 12px;font-size:16px;font-family:inherit;color:var(--ink);background:#FDFBF8;outline:none}
+.sheet input:focus,.sheet textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+.sheet .row{display:flex;gap:10px;margin-top:16px}
+.sheet button{flex:1;border-radius:var(--r-md);padding:12px;font-size:15px;font-family:inherit;font-weight:700;border:1px solid var(--line);background:#fff;color:var(--muted);min-height:46px}
+.sheet button.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+.sheet button:active{transform:scale(.98)}
+.divider{height:1px;background:var(--line);margin:16px 0}
+.sub-t{font-size:13px;font-weight:800;color:var(--ink);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+
+/* ---------- toast ---------- */
+.toast{
+  position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(14px);
+  background:rgba(60,42,34,.94);color:#fff;font-size:13px;font-weight:700;
+  padding:10px 18px;border-radius:99px;z-index:300;opacity:0;pointer-events:none;
+  transition:opacity var(--dur-2) var(--ease),transform var(--dur-2) var(--ease);
+}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="atmos"></div>
+<div class="grain"></div>
+
+<header class="wrap">
+  <div class="hero rise">
+    <div class="hero-baby" aria-hidden="true">👶</div>
+    <div class="hero-top">
+      <div>
+        <div class="hero-label">当前孕周</div>
+        <div class="hero-week" id="hWeek">--<small id="hDay"></small></div>
+      </div>
+      <button class="btn-set" id="btnSet">⚙ 设置</button>
+    </div>
+    <div class="hero-edd" id="hEdd">—</div>
+    <div class="bar"><i id="hBar" style="width:0%"></i></div>
+    <div class="bar-txt"><span id="hLeft">—</span><span id="hPct">—</span></div>
+    <div class="fruit"><em id="fEmoji">🌱</em><span id="fTxt">—</span></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="hint-default" id="hintDefault">已按你说的<b>孕 6 周</b>预设日期。点右上角「设置」改成<b>末次月经第一天</b>（或医生给的预产期），后面所有时间会自动重算。</div>
+
+  <!-- 本周待办 TOP3 -->
+  <section class="todo rise d1" id="todo3" aria-label="现在要做的三件事"></section>
+
+  <!-- 我的医院 -->
+  <section class="hosp rise d2" id="hospCard" aria-label="我的分娩医院"></section>
+
+  <input class="search rise d2" id="search" type="search" placeholder="🔍 搜：NT、建卡、津贴、待产包…" aria-label="搜索">
+</div>
+
+<div class="wrap">
+  <div class="filters" id="filters">
+    <button class="chip on" data-f="all">全部</button>
+    <button class="chip" data-f="now">进行中</button>
+    <button class="chip" data-f="soon">30 天内</button>
+    <button class="chip" data-f="late">已错过窗口</button>
+    <button class="chip" data-f="done">已完成 <span id="cDone">0</span></button>
+  </div>
+
+  <!-- ============ 时间线 ============ -->
+  <main class="sec on" id="sec-tl"></main>
+
+  <!-- ============ 产检表 ============ -->
+  <section class="sec" id="sec-check">
+    <div class="sec-h">深色行 = <b>硬窗口</b>，错过不能补做，务必提前预约</div>
+    <table class="tbl">
+      <thead><tr><th>孕周</th><th>项目</th><th>要点</th></tr></thead>
+      <tbody>
+        <tr><td>6–8 周</td><td>早孕 B 超</td><td>确认宫内孕、胎心胎芽、核对孕周。B 超单全程留好</td></tr>
+        <tr class="key"><td>11–13⁺⁶ 周</td><td><b>NT 超声 🔒</b></td><td>硬窗口，错过无法补做。提前 2–4 周预约</td></tr>
+        <tr><td>12–14 周</td><td>建大卡全套</td><td>空腹抽血（血常规、肝肾功、甲功、血型、传染病、血糖）+ 尿常规 + 心电图</td></tr>
+        <tr><td>12–22⁺⁶ 周</td><td>NIPT 无创 DNA</td><td>可选。未纳入生育包，需自费约 1000–2500 元</td></tr>
+        <tr><td>15–20 周</td><td>中期唐筛</td><td>抽血。结果临界/高风险需进一步做 NIPT 或羊穿</td></tr>
+        <tr class="key"><td>20–24 周</td><td><b>大排畸 🔒</b></td><td>排查胎儿结构畸形。需提前 1–2 个月预约，别拖</td></tr>
+        <tr class="key"><td>24–28 周</td><td><b>OGTT 糖耐 🔒</b></td><td>空腹 8–14 小时，抽空腹血糖后喝糖水，1h、2h 各抽一次，全程约 2–3 小时，当天别安排别的事</td></tr>
+        <tr><td>28–32 周</td><td>晚孕期 B 超</td><td>评估胎儿生长、羊水、胎盘、胎位</td></tr>
+        <tr><td>34–36 周起</td><td>胎心监护（NST）</td><td>之后每次产检基本都做，高危会提前</td></tr>
+        <tr class="key"><td>35–37 周</td><td><b>GBS 筛查 🔒</b></td><td>阳性需产时用抗生素，预防新生儿感染</td></tr>
+        <tr><td>36–37 周</td><td>分娩方式评估</td><td>B 超估重 + 骨盆/宫颈评估，和医生定顺或剖</td></tr>
+        <tr><td>37–41 周</td><td>每周产检</td><td>胎心监护 + 超声，41 周未发动一般收住院催产</td></tr>
+        <tr><td>产后 42 天</td><td>妈妈 + 宝宝复查</td><td>生育包覆盖，别忘做——关系到 4500 元额度清算</td></tr>
+      </tbody>
+    </table>
+    <div class="sec-h">产检频率</div>
+    <table class="tbl">
+      <tbody>
+        <tr><td>建卡后–28 周</td><td>每 4 周 1 次</td></tr>
+        <tr><td>28–36 周</td><td>每 2 周 1 次</td></tr>
+        <tr><td>36 周–分娩</td><td>每 周 1 次</td></tr>
+        <tr><td>产检假期</td><td>国家规定：产检所需时间<b>计入劳动时间</b>，不算请假、不扣工资</td></tr>
+      </tbody>
+    </table>
+    <div class="note"><b>上海 2026.10.1 新政：</b>建大卡后到产后 42 天复查，42 项生育服务包内产检可直接刷社保卡／医保电子凭证，先扣 4500 元额度，超出部分生育保险全额兜底，个人"无自付"。<b>无创 DNA、特需挂号费、服务包外的项目仍需自费。</b><br><span style="color:#94837A">（政策数字最后整理于 2026-10-18，办理前请以随申办／医院当期口径为准）</span></div>
+  </section>
+
+  <!-- ============ 办事 ============ -->
+  <section class="sec" id="sec-gov"></section>
+
+  <!-- ============ 待产包 ============ -->
+  <section class="sec" id="sec-bag"></section>
+
+  <!-- ============ 工具（胎动 / 宫缩） ============ -->
+  <section class="sec" id="sec-tool">
+    <div class="sec-h">两个计数器的数据都存在本机，换手机不会丢（可用「设置 → 同步给对方」搬家）</div>
+
+    <div class="tool">
+      <h3>👣 数胎动 <span style="font-size:11px;font-weight:700;color:#94837A;background:#F2EDE8;border-radius:99px;padding:2px 8px">28 周起每天做</span></h3>
+      <div class="sub">早、中、晚各固定 1 小时，安静侧卧，感到一次点一下。正常：<b>每小时 ≥3 次</b>；三段之和 ×4 ≈ 12 小时胎动，<b>≥30 次正常，&lt;20 次或比平时少一半 → 立刻去医院</b>。</div>
+      <div class="segs">
+        <button class="seg on" data-seg="mor">早上<b id="sMor">–</b></button>
+        <button class="seg" data-seg="mid">中午<b id="sMid">–</b></button>
+        <button class="seg" data-seg="eve">晚上<b id="sEve">–</b></button>
+      </div>
+      <div class="t-center">
+        <button class="big-btn" id="fmBtn"><b id="fmNum">0</b><span id="fmLabel">开始数胎动</span></button>
+      </div>
+      <div class="timer" id="fmTimer">还没开始 · 选一个时段，点上面的圆按钮开始</div>
+      <button class="btn-line" id="fmStop" style="display:none;border-color:#FFD3BC;color:#D2543A">⏹ 结束并保存这一段</button>
+      <div class="judge j-wait" id="fmJudge">三段都记满后，这里会告诉你正不正常</div>
+      <div class="log" id="fmLog"></div>
+    </div>
+
+    <div class="tool">
+      <h3>⏱ 数宫缩 <span style="font-size:11px;font-weight:700;color:#94837A;background:#F2EDE8;border-radius:99px;padding:2px 8px">发动时用</span></h3>
+      <div class="sub">肚子一紧就点「开始」，松了就点「结束」。系统会算<b>间隔</b>（这次开始到下次开始）和<b>持续</b>。<br>初产妇：<b>5 分钟一次、每次约 1 分钟、连续 1 小时</b> → 出发去医院。</div>
+      <div class="t-center">
+        <button class="big-btn" id="ucBtn"><b id="ucNum">0</b><span id="ucLabel">开始一次宫缩</span></button>
+      </div>
+      <div class="timer" id="ucTimer">还没开始</div>
+      <div class="judge j-wait" id="ucJudge">记录满 3 次后会自动判断要不要出发</div>
+      <div class="log" id="ucLog"></div>
+      <button class="btn-line" id="ucClear">清空本次记录</button>
+      <button class="btn-line" id="ucCall" style="border-color:#F5C9C5;color:#E8544E">📞 打给我的分娩医院</button>
+    </div>
+  </section>
+
+  <!-- ============ 应急 ============ -->
+  <section class="sec" id="sec-alert">
+    <div id="alertHosp"></div>
+    <div class="alert">
+      <h3>⛔ 出现以下任一情况，立刻去医院（别等、别问群）</h3>
+      <ul>
+        <li><b>阴道流血</b>（尤其孕早期，量多或伴腹痛）</li>
+        <li><b>破水</b>：不受控制地流液 —— 立即平躺、垫高臀部、叫车送医</li>
+        <li><b>规律宫缩</b>：5–6 分钟一次、每次持续约 1 分钟、连续 1 小时以上（37 周前 = 先兆早产）</li>
+        <li><b>胎动明显减少或消失</b>：12 小时少于 10 次，或比平时减少一半以上</li>
+        <li>持续性剧烈头痛、视物模糊、水肿突然加重（警惕子痫前期）</li>
+        <li>剧烈腹痛、发热超过 38℃、外伤跌倒后</li>
+      </ul>
+      <div class="tel">
+        <a href="tel:120">📞 120 急救</a>
+        <a href="tel:02112320">📞 12320 卫生热线</a>
+      </div>
+    </div>
+
+    <div class="sec-h">临产三信号</div>
+    <table class="tbl">
+      <tbody>
+        <tr><td>见红</td><td>少量褐色/粉色分泌物，一般 24–48 小时内发动。血量如月经最多量 → 马上去医院</td></tr>
+        <tr><td>破水</td><td>不受控流液，温水样。立刻平躺 + 垫高屁股 + 送医院，别洗澡别走路</td></tr>
+        <tr><td>宫缩</td><td>初产妇：规律 5 分钟一次、持续 1 分钟、满 1 小时 → 出发。经产妇更快，有感觉就去</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sec-h">准爸爸的活（你这边）</div>
+    <div class="gov">
+      <dl>
+        <dd>· 办证主力：出生证明、落户、医保、少儿互助基金、生育津贴、育儿补贴，基本都能在"随申办"里办</dd>
+        <dd>· 陪产假 <b>10 天</b>，在妻子产假期间连续使用；育儿假：孩子满 3 岁前<b>每年各 5 天</b></dd>
+        <dd>· 36 周起：提前踩点医院路线、急诊入口、停车位；待产包放后备厢或门口</dd>
+        <dd>· 陪产时带：身份证、医保卡、手机充电宝、产褥垫、拖鞋、水和食物</dd>
+        <dd>· 产后头两周别安排访客、别催奶、别评论身材。多做家务，多问"你现在需要什么"</dd>
+        <dd>· 关注妻子情绪：产后 2 周内持续低落、失眠、想哭，警惕产后抑郁，及时就医</dd>
+      </dl>
+    </div>
+    <div class="sec-h">怎么在手机上长期用它</div>
+    <div class="gov">
+      <dl>
+        <dt>第一步</dt><dd>用手机<b>自带浏览器</b>（iPhone 用 Safari，安卓用 Chrome）打开链接，别用微信里直接打开</dd>
+        <dt>第二步</dt><dd>iPhone：底部「分享」→ 添加到主屏幕；安卓：右上角 ⋮ → 添加到主屏幕／安装应用</dd>
+        <dt>第三步</dt><dd>之后<b>断网、链接过期都能打开</b>，页面已经存在手机里，图标就在桌面</dd>
+        <dt>备份</dt><dd>「设置」→「把整页存一份到手机」，会下载一个 孕程表.html，永久可用</dd>
+      </dl>
+    </div>
+    <div class="note">以上为通用医学常识整理，<b>任何不适以产科医生判断为准</b>。政策条款可能调整，办理前以"随申办"／社区／医院当期公告为准。</div>
+  </section>
+</div>
+
+<!-- ============ tabs ============ -->
+<nav class="tabs">
+  <button class="tab on" data-s="tl"><i>📅</i>时间线</button>
+  <button class="tab" data-s="check"><i>🩺</i>产检</button>
+  <button class="tab" data-s="gov"><i>🏛</i>办事</button>
+  <button class="tab" data-s="bag"><i>🎒</i>待产包</button>
+  <button class="tab" data-s="tool"><i>⏱</i>计时</button>
+  <button class="tab" data-s="alert"><i>🆘</i>应急</button>
+</nav>
+
+<!-- ============ 设置弹层 ============ -->
+<div class="mask" id="mask">
+  <div class="sheet">
+    <h3>⚙ 设置</h3>
+
+    <div class="sub-t">📅 孕周基准</div>
+    <p style="margin-bottom:11px">孕周和预产期以<b>末次月经第一天</b>推算（不是同房日、也不是 B 超日）。医生按 B 超纠正过孕周的话，直接填<b>预产期</b>也行，会自动反推。</p>
+    <label>末次月经第一天</label>
+    <input type="date" id="inpLmp">
+    <div style="display:flex;gap:10px;margin-top:11px">
+      <div style="flex:1"><label>或直接填预产期</label><input type="date" id="inpEdd"></div>
+      <div style="flex:1"><label>现在孕几周</label><input type="number" id="inpWk" placeholder="如 6" inputmode="decimal" style="ime-mode:disabled"></div>
+    </div>
+    <p style="margin-top:9px;font-size:12px">三种填法任选一个，填最下面一格会按今天反推日期。之后随时可以回来改。</p>
+
+    <div class="divider"></div>
+    <div class="sub-t">🏥 我的分娩医院</div>
+    <label>医院名称</label><input type="text" id="inpHospName" placeholder="如：上海市浦东新区妇幼保健院">
+    <div style="margin-top:9px"><label>产科电话（点应急页可直接拨号）</label><input type="tel" id="inpHospTel" placeholder="如：02150306088"></div>
+    <div style="margin-top:9px"><label>地址</label><input type="text" id="inpHospAddr" placeholder="用于一键导航"></div>
+    <div style="margin-top:9px"><label>主治医生 / 建档号 / 备注（可不填）</label><input type="text" id="inpHospNote" placeholder="如：李医生 · 建档号 12345"></div>
+
+    <div class="divider"></div>
+    <div class="sub-t">👥 同步给对方</div>
+    <p style="margin-bottom:10px">你俩手机各存一份进度会不一致。点「导出」复制下面这段文字，微信发给对方；对方粘贴进去点「导入」即可。</p>
+    <button class="btn-line" id="btnExport" style="margin-top:0">📤 导出我的进度（孕周 + 已完成 + 待产包）</button>
+    <textarea id="syncBox" rows="3" placeholder="点上面的导出，进度会变成一段文字出现在这里" style="margin-top:10px;font-size:12px"></textarea>
+    <button class="btn-line" id="btnImport">📥 粘贴对方的进度并导入</button>
+
+    <div class="row">
+      <button id="btnCancel">取消</button>
+      <button class="pri" id="btnSave">保存</button>
+    </div>
+    <button id="btnCopy" style="width:100%;margin-top:10px;border-radius:16px;padding:12px;font-size:14px;font-family:inherit;font-weight:700;border:1px dashed #E4D8CF;background:#FDFBF8;color:#63554D;min-height:46px">💾 把整页存一份到手机（永久可用）</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= 数据 ================= */
+// f/t 单位：孕天数（末次月经第1天=0）。产后事项用 280+N 天（按预产期估算）
+// hard=true → 硬窗口，错过不能补做；urgent → 现在最紧急；low → 长期事项，不进 TOP3
+var TL = [
+/* ---------- 孕早期 ---------- */
+{id:'e1',g:'孕早期 · 1–13 周',f:42,t:62,c:'check',w:'6–8 周',title:'早孕 B 超：确认宫内孕 + 胎心胎芽',
+ act:'先做 B 超 —— 见到胎心胎芽才能建卡',
+ ul:['排除宫外孕、葡萄胎，确认胚胎数和是否存活','核对真实孕周（医生会据此修正预产期）','<b>这张 B 超单全程留好</b>，建小卡、建大卡都要用']},
+{id:'e2',g:'孕早期 · 1–13 周',f:42,t:90,c:'gov',w:'6–12⁺⁶ 周',title:'社区建「小卡」（早孕建册）',
+ act:'带身份证 + 结婚证 + B 超单去社区卫生服务中心',
+ ul:['地点：户籍地或<b>常住地</b>社区卫生服务中心（浦东按街道对应）','带：夫妻双方身份证、结婚证、户口本或居住证、早孕 B 超单、医保卡','免费项目：血常规、尿常规、白带常规、妇科检查；乙肝／HIV／梅毒筛查全人群免费','领《上海市孕产妇健康手册》，<b>之后每次产检都要带</b>','窗口：B 超见胎心后 ~ 12⁺⁶ 周，越早越好，别拖到 13 周']},
+{id:'e3',g:'孕早期 · 1–13 周',f:42,t:69,c:'gov',w:'6–9 周',urgent:true,title:'抢浦妇幼建档名额（现在最紧急）',
+ act:'打 021-50306088 转 8017，或公众号挂「产科初诊」',
+ ul:['<b>这是现在最紧急的事</b>：浦妇幼建卡建议 13⁺⁶ 周前，<b>最好孕 8 周前</b>，这样才约得上 NT 档期',
+ '地址：<b>浦东新区红枫路 599 号</b>（金桥碧云国际社区）。地铁 9 号线蓝天路站 5 号口 → 转 609 路／申川专线；公交 1052、609、申川专线等',
+ '预约三选一：① 电话 <b>021-50306088 转 8017</b>　②「浦东卫健康」公众号挂 <b>产科初诊</b>　③「浦妇幼」公众号 → <b>建大卡直通车</b>',
+ '<b>最大的坑：预约建卡要用医院的「自费卡」，不能用医保卡</b>。到院先在 1 楼服务台／自助机办自费卡',
+ '<b>建卡当天要空腹抽血</b>：周一至周五上午 7:30–9:00 到院可当日抽；下午去则要隔日再来。抽完可以吃东西，院内有餐车／便利店',
+ '带上：身份证、小卡（《上海市孕产妇健康手册》）、早孕 B 超单、医保卡、既往病历',
+ '建卡费用约 2000 元（自费卡结算）。建完卡就进入 42 项生育服务包，之后产检刷医保卡',
+ '门诊 周一至周六 8:00–11:30 / 13:00–16:30（中午连续门诊）；急诊限妇科、产科。周日门诊以医院当期公告为准']},
+{id:'e4',g:'孕早期 · 1–13 周',f:0,t:98,c:'life',w:'全孕期',low:true,title:'营养补充 + 生活禁忌',
+ act:'每天一片叶酸 0.4–0.8mg',
+ ul:['叶酸 0.4–0.8mg／天（至少服到 12 周，建议全孕期）','维生素 D 400–800 IU／天；钙 600mg／天从孕中期开始','铁剂等血常规结果再补，别自己乱吃','忌：酒、烟、生食／半生（生鱼片、溏心蛋）、未灭菌奶；咖啡因 &lt;200mg／天（约 1 杯美式）','家里有猫：铲屎交给别人（弓形虫）；少用含维 A 酸／水杨酸的护肤品','孕早期早孕反应：少食多餐、含姜片、维生素 B6 遵医嘱；体重掉太多要就医']},
+{id:'e5b',g:'孕早期 · 1–13 周',f:56,t:77,c:'check',w:'8–11 周',title:'现在就去预约 NT 超声档期',
+ act:'打医院电话，锁定 11–13⁺⁶ 周的 NT 时间',
+ ul:['NT 是硬窗口，<b>错过无法补做</b>','多数医院要提前 2–4 周预约，热门医院更久','预约时顺便问：早期唐筛要不要同一天抽血']},
+{id:'e5',g:'孕早期 · 1–13 周',f:77,t:97,c:'check',w:'11–13⁺⁶ 周',hard:true,title:'NT 超声（颈项透明层）',
+ act:'11–13⁺⁶ 周做，错过不能补',
+ ul:['硬窗口，<b>错过无法补做</b>','提前 2–4 周在建卡医院预约','配合早期唐筛（抽血）一起评估染色体风险']},
+{id:'e6',g:'孕早期 · 1–13 周',f:84,t:98,c:'check',w:'12–14 周',title:'医院建「大卡」+ 首次全套产检',
+ act:'空腹去建大卡，带小卡 + 身份证 + 自费卡',
+ ul:['<b>浦妇幼流程</b>：① 按预约时间挂号（产科初诊）付费 → ② 2 楼大卡室量体重血压、填信息 → ③ 等叫号 → ④ 医生开检查单（抽血、B 超、尿检、白带、心电图）→ ⑤ 护士台签到回诊 → ⑥ 医生约好下次产检',
+ '当天<b>要空腹</b>抽血：血常规、肝肾功、甲功、传染病、血型、空腹血糖等',
+ '<b>建议早上 7:30–9:00 到院</b>，当天就能抽完；自带点心，抽完立刻吃',
+ '建好大卡 = 进入 42 项生育服务包，之后产检直接刷医保卡',
+ '想挂特需：普通建卡后到 1 楼服务台咨询约医生，<b>特需产检项目和普通是一样的</b>']},
+{id:'e7',g:'孕早期 · 1–13 周',f:84,t:160,c:'check',w:'12–22⁺⁶ 周',title:'NIPT 无创 DNA（可选）',
+ act:'抽血即可，自费 1000–2500 元',
+ ul:['抽血即可，对 21／18／13 三体检出率高于唐筛','<b>未纳入生育服务包，需自费</b>（约 1000–2500 元）','35 岁以上或唐筛高风险，医生可能直接建议做']},
+
+/* ---------- 孕中期 ---------- */
+{id:'m1',g:'孕中期 · 14–27 周',f:105,t:146,c:'check',w:'15–20 周',title:'中期唐筛（抽血）',
+ act:'抽血，预约时问清要不要空腹',
+ ul:['部分医院要求空腹，预约时问清','高风险／临界 → 进一步做 NIPT 或羊水穿刺，别自行百度吓自己']},
+{id:'m2',g:'孕中期 · 14–27 周',f:112,t:118,c:'gov',w:'16 周左右',title:'现在就去预约大排畸',
+ act:'打电话把 20–24 周的大排畸约上',
+ ul:['大排畸在 20–24 周做，<b>提前 1–2 个月</b>才约得上','同一时间把 24–28 周的糖耐也一起约了']},
+{id:'m3',g:'孕中期 · 14–27 周',f:140,t:174,c:'check',w:'20–24 周',hard:true,title:'大排畸（系统超声 / 四维）',
+ act:'排查结构畸形，预留半天时间',
+ ul:['排查胎儿头面、脊柱、心脏、腹壁、四肢等结构异常','检查时间长、要看胎儿体位，可能要走动后再照，预留半天']},
+{id:'m4',g:'孕中期 · 14–27 周',f:168,t:202,c:'check',w:'24–28 周',hard:true,title:'OGTT 糖耐量试验',
+ act:'空腹 8–14 小时，全程 2–3 小时',
+ ul:['<b>空腹 8–14 小时</b>，前一晚 22 点后禁食','流程：空腹抽血 → 5 分钟内喝完 75g 糖水 → 1 小时、2 小时各抽一次','全程 2–3 小时，别安排其他事；喝完别走动太猛，晕了要告诉护士','确诊妊娠糖尿病 → 营养门诊 + 血糖监测，多数能控住']},
+{id:'m5',g:'孕中期 · 14–27 周',f:91,t:202,c:'check',w:'13–28 周',low:true,title:'每 4 周一次产检',
+ act:'每 4 周一次，记得带小卡',
+ ul:['每次：体重、血压、宫高腹围、胎心、尿常规','每次都带《上海市孕产妇健康手册》（小卡）']},
+{id:'m6',g:'孕中期 · 14–27 周',f:112,t:266,c:'life',w:'16 周起',low:true,title:'身体管理：体重、运动、睡姿',
+ act:'左侧卧睡 + 每天散步 30 分钟',
+ ul:['体重：孕前正常 BMI 者整个孕期增重 11–16kg 为宜，中晚期每周 0.3–0.5kg','运动：无禁忌时每天 30 分钟散步／孕妇瑜伽，避免仰卧位运动和腹部受压','<b>左侧卧睡</b>，从孕中期就养成习惯','开始涂妊娠纹油（效果有限但保湿止痒有用）；腰酸可用托腹带']},
+{id:'m7',g:'孕中期 · 14–27 周',f:196,t:209,c:'gov',w:'28 周',title:'28 周产检 + 最终确认分娩医院',
+ act:'确认建档、存急诊电话、开始每天数胎动',
+ ul:['确认医院建档已定，问清入院流程、待产包要求、陪产政策','把医院产科急诊电话存进手机','开始<b>每天数胎动</b>（用「计时」页的胎动计数器）']},
+
+/* ---------- 孕晚期 ---------- */
+{id:'l1',g:'孕晚期 · 28–40 周',f:210,t:230,c:'check',w:'30–32 周',title:'晚孕期 B 超（小排畸）',
+ act:'看生长发育、羊水、胎位',
+ ul:['评估胎儿生长发育、羊水量、胎盘位置、胎位','胎位不正（臀位）此时还有机会做外倒转或纠正姿势']},
+{id:'l2',g:'孕晚期 · 28–40 周',f:224,t:258,c:'check',w:'32–36 周',title:'每 2 周一次产检',
+ act:'每 2 周一次，开始做胎心监护',
+ ul:['开始做胎心监护（NST），每次约 20 分钟','血压、尿蛋白重点看，警惕子痫前期']},
+{id:'l3',g:'孕晚期 · 28–40 周',f:238,t:266,c:'check',w:'34–37 周',hard:true,title:'GBS 筛查 + 胎心监护常态',
+ act:'35–37 周查 GBS，阳性产时用抗生素',
+ ul:['B 族链球菌筛查（35–37 周），阳性产时用抗生素即可，不用慌','胎心监护之后每次产检都做']},
+{id:'l4',g:'孕晚期 · 28–40 周',f:245,t:266,c:'buy',w:'35–37 周',title:'待产包 + 证件袋 + 路线演练',
+ act:'36 周前打包完，证件袋单独防水',
+ ul:['<b>36 周前必须打包完毕</b>，放门口或后备厢','证件袋：夫妻双方身份证、医保卡、结婚证、小卡、全部产检报告、银行卡','踩点：从家到产科急诊／住院部怎么走、夜里停哪、预计多久','把月嫂／月子中心／产康提前定好，问清医院陪护政策']},
+{id:'l5',g:'孕晚期 · 28–40 周',f:259,t:280,c:'check',w:'37–40 周',title:'足月评估 + 定分娩方式',
+ act:'和医生敲定顺产还是剖宫产',
+ ul:['B 超估胎儿体重、看胎位／羊水／胎盘成熟度','和医生敲定顺产还是剖宫产，写进病历','37 周起随时可能发动，<b>别让老婆一个人待着</b>']},
+{id:'l6',g:'孕晚期 · 28–40 周',f:259,t:280,c:'gov',w:'37–38 周',title:'请产假 + 工作交接',
+ act:'产假 158 天，提前跟 HR 确认材料',
+ ul:['产假 98 天 + 上海生育假 60 天 = <b>158 天</b>（难产 +15 天，多胞胎每多 1 个 +15 天）','产前可提前休 15 天；孕 7 个月以上经单位批准可休产前假 2.5 个月','男方陪产假 <b>10 天</b>，在妻子产假期间连续使用','提前把生育津贴材料告知公司 HR（一般 HR 会办，你只需确认参保正常）']},
+{id:'l7',g:'孕晚期 · 28–40 周',f:280,t:287,c:'alert',w:'40 周',title:'预产期到了还没动静',
+ act:'前后 2 周内都正常，按医嘱加强监护',
+ ul:['预产期前后 2 周内出生都属正常，不必焦虑','按医生安排加强监护，41 周未发动通常收住院催产']},
+
+/* ---------- 临产 & 产后 ---------- */
+{id:'p0',g:'临产 & 产后',f:280,t:287,c:'alert',w:'发动时',title:'去医院的时机',
+ act:'规律 5 分钟一次满 1 小时 → 出发',
+ ul:['规律宫缩 5 分钟一次、持续 1 分钟、满 1 小时 → 出发','破水 → 平躺垫高臀部，立刻送医','见红量大（≥月经量）或伴腹痛 → 立刻去','初产妇从规律宫缩到生一般 10–18 小时，不用慌但也别拖到最后']},
+{id:'p1',g:'临产 & 产后',f:280,t:290,c:'gov',w:'住院期间',title:'《出生医学证明》+「出生一件事」',
+ act:'出生 1 个月内，随申办搜「出生一件事」',
+ ul:['<b>出生 1 个月内</b>办理，随申办 App／小程序搜"出生一件事"一次办 11 项','办前：爸爸先在随申办【亮证】里把身份证、户口簿、结婚证<b>授权给妈妈</b>','可联办：出生证明、预防接种证、落户、社保卡、少儿医保参保缴费、少儿住院互助基金、科学育儿登记，以及妈妈的生育医学证明和生育保险待遇申领','<b>注意：已在医院线下单独领了出生证明的，不能再走线上联办</b>']},
+{id:'p2',g:'临产 & 产后',f:283,t:293,c:'check',w:'产后 3–7 天',title:'社区产后访视（上门）',
+ act:'等社区电话，上门看妈妈和宝宝',
+ ul:['社区卫生服务中心会电话预约上门，看妈妈伤口／子宫复旧／黄疸','黄疸高、体温异常会转诊，别硬扛']},
+{id:'p3',g:'临产 & 术后',f:280,t:322,c:'gov',w:'产后',title:'生育生活津贴 + 医疗费补贴',
+ act:'随申办推送后一键确认 + 填银行卡',
+ ul:['生育生活津贴 = 单位上年度职工月平均工资 ÷ 30 × 158 天，<b>生育津贴免申即享</b>：随申办推送后一键确认 + 填银行卡即可','10 个工作日内办结，直接打个人银行卡','生育医疗费：产检直接刷医保卡；若全程未在定点医院产检或额度有结余，<b>产后 42 天复查后（约宝宝出生第 50 天）可申请剩余 4500 元额度清算</b>','材料缺口可打 12393（医保咨询）']},
+{id:'p4',g:'临产 & 产后',f:322,t:322,c:'check',w:'产后 42 天',title:'妈妈 + 宝宝 42 天复查',
+ act:'一定要做，关系到额度清算',
+ ul:['妈妈：子宫复旧、伤口、盆底功能评估、血压血糖','宝宝：体重身长、黄疸、发育评估','<b>一定要做</b>——生育包覆盖，且关系到 4500 元额度清算']},
+{id:'p5',g:'临产 & 产后',f:280,t:365,c:'gov',w:'出生后',title:'育儿补贴 3600 元／年',
+ act:'支付宝/微信/随申办搜「育儿补贴」',
+ ul:['国家育儿补贴：每孩每年 3600 元，发到满 3 周岁','入口：支付宝／微信／随申办 → 育儿补贴信息管理系统','2026 年起有"一键续领"，次年记得续']},
+{id:'p6',g:'临产 & 产后',f:280,t:370,c:'gov',w:'出生 3 个月内',title:'少儿医保 + 少儿住院互助基金',
+ act:'出生 90 天内参保，可从出生日起享受',
+ ul:['随"出生一件事"一起办最省事','<b>出生 90 天内</b>参保，可从出生之日起享受医保待遇，别错过','少儿住院互助基金按年度缴费（上海红十字会），住院可报销一部分']},
+{id:'p7',g:'临产 & 产后',f:280,t:400,c:'check',w:'0–6 月龄',title:'疫苗计划（国家免疫规划）',
+ act:'按接种本的时间打，别漏',
+ ul:['出生 24 小时内：乙肝① + 卡介苗','1 月龄：乙肝② ｜ 2 月龄：脊灰① ｜ 3 月龄：脊灰② + 百白破①','4 月龄：脊灰③ + 百白破② ｜ 5 月龄：百白破③','6 月龄：乙肝③ + A 群流脑① ｜ 8 月龄：麻腮风① + 乙脑','具体以社区卫生服务中心接种本为准']}
+];
+
+var GOV = [
+ {w:'孕 6–12⁺⁶ 周',t:'建小卡（早孕建册）',where:'社区卫生服务中心',
+  d:[['材料','夫妻双方身份证、结婚证、户口本／居住证、早孕 B 超单、医保卡'],['费用','免费（含血尿常规、白带、妇科检查、乙肝／HIV／梅毒筛查）'],['产出','《上海市孕产妇健康手册》+ 纳入上海孕产妇管理系统，后续有免费随访和产后访视'],['提示','非沪籍可凭居住证／租房合同在常住地办；部分社区需预约，先打电话']]},
+ {w:'孕 12–16 周',t:'建大卡（医院建档）',where:'计划分娩的医院（你：浦妇幼）',
+  d:[['材料','小卡、身份证、结婚证、医保卡／社保卡、早孕 B 超单、既往病历'],['费用','2026.10.1 起：服务包内 42 项产检先扣 4500 元额度，超出部分生育保险全额付，个人无自付'],['坑','<b>预约建卡要用医院自费卡，不能用医保卡</b>，先到 1 楼服务台／自助机办卡'],['提示','热门医院建档名额紧张，<b>越早越好</b>；建卡当天要空腹，建议上午 7:30–9:00 到院']]},
+ {w:'分娩前后',t:'生育保险待遇申领',where:'随申办 App / 微信 / 支付宝小程序',
+  d:[['内容','生育生活津贴（158 天工资）+ 生育医疗费补贴'],['方式','在本市定点医院分娩 + 本市职工医保正常参保 → <b>免申即享</b>，随申办推送提醒后一键确认'],['时限','提交后 10 个工作日内办结，直打个人银行卡'],['咨询','12393']]},
+ {w:'出生 1 个月内',t:'出生一件事（11 项联办）',where:'随申办 → 出生一件事',
+  d:[['可办','出生医学证明、预防接种证、落户、社保卡、少儿医保参保缴费、门急诊就医记录册、少儿住院互助基金、科学育儿登记 + 妈妈的生育医学证明、生育保险申领'],['前置','爸爸先在随申办【亮证】把电子证照授权给妈妈'],['提示','已经线下在医院拿了出生证明的，无法再走线上联办']]},
+ {w:'产后 42 天复查后',t:'生育医疗费补贴剩余额度清算',where:'随申办 / 街镇社区事务受理服务中心',
+  d:[['时间','宝宝出生约第 50 天起可申请'],['情形','全程未用或 4500 元额度有结余（如全程私立／异地产检）'],['提示','在定点医院刷医保卡做过服务包产检的，额度一般已用完，无需申请']]},
+ {w:'出生后即可',t:'育儿补贴（每孩每年 3600 元）',where:'支付宝 / 微信 / 随申办 → 育儿补贴',
+  d:[['标准','国家基础标准 3600 元／孩／年，发至满 3 周岁'],['税','免征个人所得税，不计入低保家庭收入'],['续领','次年要重新申请，2026 年起支持"一键续领"']]},
+ {w:'出生 3 个月内',t:'少儿医保 + 少儿住院互助基金',where:'随出生一件事 / 社区事务受理服务中心',
+  d:[['关键','<b>出生 90 天内</b>办参保，可从出生日起享受待遇'],['咨询','医保 962218 ／ 12345']]},
+ {w:'假期',t:'产假 · 陪产假 · 育儿假',where:'向单位 HR 申请',
+  d:[['女方','产假 98 天 + 上海生育假 60 天 = 158 天；难产 +15 天；多胞胎每多 1 个 +15 天'],['男方','陪产假 10 天，在妻子产假期间连续使用'],['育儿假','孩子满 3 周岁前，夫妻双方<b>每年各 5 天</b>'],['产检时间','计入劳动时间，不算请假、不扣工资']]}
+];
+
+// 第 3 项 tag：go = 发动就带走（随身包）
+var BAG = [
+ {g:'📄 证件袋（最重要，单独放一个防水袋）',items:[
+   ['夫妻双方身份证 + 结婚证','复印件也备一份','go'],
+   ['医保卡 / 社保卡','产检和住院结算用','go'],
+   ['《上海市孕产妇健康手册》（小卡）','每次产检必带','go'],
+   ['全部产检报告 + B 超单','按时间顺序夹好','go'],
+   ['银行卡 / 现金','押金、住院预缴','go'],
+   ['准生相关材料','非沪籍备居住证','go']]},
+ {g:'🚗 发动就带走（小包，36 周前放门口或后备厢）',items:[
+   ['产褥垫 60×90cm ×10','先带一半，剩下的放大包','go'],
+   ['产妇卫生巾 / 计量型卫生巾','前 3 天量大','go'],
+   ['一次性内裤 ×5','脏了直接扔','go'],
+   ['吸管杯 + 弯头吸管','躺着喝水','go'],
+   ['软底拖鞋 + 袜子','产后怕冷','go'],
+   ['手机 + 充电宝（2 米线）','产房里唯一能带的东西','go'],
+   ['包被 / 抱被 ×1','出院包宝宝用','go'],
+   ['出院穿的外套 + 月子帽','出院别吹风','go']]},
+ {g:'🏥 妈妈 · 住院用',items:[
+   ['产褥垫再备 10 片',''],
+   ['哺乳文胸 ×2 + 防溢乳垫',''],
+   ['月子服 / 前开扣睡衣 ×2','方便哺乳和检查'],
+   ['会阴冲洗器','顺产后必备'],
+   ['洗漱用品 + 毛巾 ×2',''],
+   ['乳头霜（羊脂膏）','开奶期救命'],
+   ['收腹带 / 骨盆带','问医生后再用',''],
+   ['一次性马桶垫','']]},
+ {g:'🏥 宝宝 · 医院',items:[
+   ['NB 纸尿裤 ×1 包','医院通常发，备小包'],
+   ['婴儿湿巾 + 护臀膏',''],
+   ['和尚服 / 连体衣 ×2','按季节选厚度','go'],
+   ['婴儿浴巾 ×1',''],
+   ['小勺 + 小碗','母乳喂养初期避免奶瓶混淆']]},
+ {g:'🏠 妈妈 · 月子期',items:[
+   ['电动吸奶器','堵奶时应急，可先不定，需要再买'],
+   ['储奶袋 + 记号笔',''],
+   ['痔疮膏（孕产妇可用型）','问过医生再用']]},
+ {g:'🏠 宝宝 · 回家后',items:[
+   ['婴儿床 + 床垫','提前 1 个月买好散味'],
+   ['安全座椅（提篮式）','<b>出院坐车就要用，提前装好</b>','go'],
+   ['婴儿澡盆 + 浴巾 + 沐浴露',''],
+   ['恒温壶 / 调奶器','夜里冲奶省事'],
+   ['婴儿指甲剪 + 体温计 + 生理盐水',''],
+   ['维生素 D3 滴剂','出生后数天开始补']]},
+ {g:'✅ 家里提前搞定',items:[
+   ['医院路线 + 夜间接送方案','36 周前踩点，<b>浦妇幼急诊限妇科、产科</b>','go'],
+   ['月嫂 / 月子中心 / 家人排班','提前 3 个月定'],
+   ['家里消毒 + 宠物安置',''],
+   ['请产假、陪产假流程走完','跟 HR 确认材料']]}
+];
+
+var FRUIT = {4:['🌱','罂粟籽大小'],5:['🌱','苹果籽大小'],6:['🫛','小扁豆，约 6mm'],7:['🫐','蓝莓大小'],8:['🍇','覆盆子大小'],9:['🍇','葡萄大小'],10:['🍓','草莓，约 3cm'],11:['🍈','无花果大小'],12:['🍋','青柠，约 5.5cm'],13:['🫛','豌豆荚大小'],14:['🍋','柠檬，约 8.5cm'],15:['🍎','苹果大小'],16:['🥑','牛油果，约 11.6cm'],17:['🍐','梨大小'],18:['🫑','甜椒大小'],19:['🍅','番茄大小'],20:['🍌','香蕉，约 16cm'],22:['🥭','木瓜大小'],24:['🌽','玉米，约 21cm'],26:['🧅','大葱大小'],27:['🥦','花椰菜大小'],28:['🍆','茄子，约 25cm'],30:['🥬','卷心菜大小'],32:['🍈','哈密瓜，约 28cm'],34:['🍍','菠萝大小'],36:['🥬','长叶莴苣，约 32cm'],38:['🎃','小南瓜大小'],40:['🍉','小西瓜，约 35cm']};
+
+var HOSP_DEF = {
+  name:'上海市浦东新区妇幼保健院（浦妇幼）',
+  tel:'02150306088',
+  addr:'浦东新区红枫路 599 号（金桥碧云国际社区，近锦绣东路）',
+  note:'预约/服务台 50306088 转 8017 · 门诊周一至周六 8:00–11:30、13:00–16:30（中午连续）· 急诊限妇科、产科'
+};
+
+/* ================= 存储 ================= */
+var KEY_LMP='pg_lmp', KEY_DONE='pg_done', KEY_BAG='pg_bag', KEY_HOSP='pg_hosp',
+    KEY_FM='pg_fm', KEY_UC='pg_uc', KEY_DEF='pg_isdef';
+var lmp=null, done={}, bag={}, hosp=null, fm={}, uc=[], isDefault=false, filter='all', kw='';
+
+function fmt(d){var m=d.getMonth()+1,dd=d.getDate();return d.getFullYear()+'年'+m+'月'+dd+'日';}
+function fmtS(d){var m=d.getMonth()+1,dd=d.getDate();return m+'月'+dd+'日';}
+function addD(d,n){var x=new Date(d.getTime());x.setDate(x.getDate()+n);return x;}
+function parseD(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+function toStr(d){var m=('0'+(d.getMonth()+1)).slice(-2),dd=('0'+d.getDate()).slice(-2);return d.getFullYear()+'-'+m+'-'+dd;}
+function today0(){var t=new Date();t.setHours(0,0,0,0);return t;}
+function days(){ if(!lmp) return 0; return Math.round((today0()-lmp)/86400000); }
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function load(){
+  var s=localStorage.getItem(KEY_LMP);
+  if(s){ lmp=parseD(s); isDefault=(localStorage.getItem(KEY_DEF)==='1'); }
+  else { lmp=addD(today0(),-42); isDefault=true; }   // 默认按孕 6 周预设
+  try{done=JSON.parse(localStorage.getItem(KEY_DONE)||'{}');}catch(e){done={};}
+  try{bag=JSON.parse(localStorage.getItem(KEY_BAG)||'{}');}catch(e){bag={};}
+  try{hosp=JSON.parse(localStorage.getItem(KEY_HOSP)||'null')||HOSP_DEF;}catch(e){hosp=HOSP_DEF;}
+  try{fm=JSON.parse(localStorage.getItem(KEY_FM)||'{}');}catch(e){fm={};}
+  try{uc=JSON.parse(localStorage.getItem(KEY_UC)||'[]');}catch(e){uc=[];}
+}
+function save(){
+  localStorage.setItem(KEY_LMP,toStr(lmp));
+  localStorage.setItem(KEY_DEF,isDefault?'1':'0');
+  localStorage.setItem(KEY_DONE,JSON.stringify(done));
+  localStorage.setItem(KEY_BAG,JSON.stringify(bag));
+  localStorage.setItem(KEY_HOSP,JSON.stringify(hosp));
+  localStorage.setItem(KEY_FM,JSON.stringify(fm));
+  localStorage.setItem(KEY_UC,JSON.stringify(uc));
+}
+function toast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('on');
+  clearTimeout(t._tm);t._tm=setTimeout(function(){t.classList.remove('on');},2200);
+}
+
+/* ================= 顶部 hero ================= */
+function renderHero(){
+  if(!lmp) return;
+  var d=days(), w=Math.floor(d/7), dd=d%7, edd=addD(lmp,280);
+  document.getElementById('hWeek').innerHTML='孕 '+w+' 周<small>+'+dd+' 天</small>';
+  var left=Math.round((edd-today0())/86400000);
+  document.getElementById('hEdd').innerHTML='预产期 <b>'+fmt(edd)+'</b> · '+(left>=0?('还有 '+left+' 天'):('已过 '+(-left)+' 天'));
+  document.getElementById('hBar').style.width=Math.min(100,Math.max(0,d/280*100))+'%';
+  document.getElementById('hLeft').textContent=d<=280?('已完成 '+Math.round(d/280*100)+'%'):'已足月';
+  document.getElementById('hPct').textContent=d<=280?('距预产期 '+left+' 天'):'随时可能发动';
+  var wk=Math.floor(d/7), f=FRUIT[wk];
+  if(!f){ // 缺失周龄时向下取最近的一档，避免显示空白
+    var ks=[4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,22,24,26,27,28,30,32,34,36,38,40],best=4;
+    for(var i=0;i<ks.length;i++){ if(ks[i]<=wk) best=ks[i]; }
+    f=FRUIT[best];
+  }
+  document.getElementById('fEmoji').textContent=f[0];
+  document.getElementById('fTxt').textContent='宝宝现在约 '+f[1];
+  document.getElementById('hintDefault').classList.toggle('on',isDefault);
+}
+
+/* ================= TOP3 待办 ================= */
+function statusOf(it){
+  var d=days();
+  if(done[it.id]) return 'done';
+  if(d>it.t) return 'late';
+  if(d>=it.f && d<=it.t) return 'now';
+  return 'next';
+}
+function pickTop3(){
+  var d=days(), arr=[];
+  TL.forEach(function(it){
+    if(done[it.id] || it.low) return;
+    var st=statusOf(it);
+    if(st==='done') return;
+    var rank = st==='late'?0 : (it.urgent&&st!=='late')?1 : (st==='now'&&it.hard)?2 : st==='now'?3 : 4;
+    arr.push({it:it,st:st,rank:rank,f:it.f});
+  });
+  arr.sort(function(a,b){ return a.rank-b.rank || a.f-b.f; });
+  return arr.slice(0,3);
+}
+function renderTop3(){
+  var list=pickTop3();
+  if(!list.length){
+    document.getElementById('todo3').innerHTML='<div class="todo-h">🎯 现在要做的 3 件事</div><div class="todo-empty">当前没有待办 —— 全部完成啦，安心养胎 👏</div>';
+    return;
+  }
+  var h='<div class="todo-h">🎯 现在要做的 '+list.length+' 件事<span>点一行可打勾</span></div>';
+  list.forEach(function(o,i){
+    var it=o.it, st=o.st, d=days(), chip='';
+    if(st==='now') chip='<span class="todo-chip">还剩 '+Math.max(0,it.t-d)+' 天</span>';
+    else if(st==='late') chip='<span class="todo-chip late">已过窗口</span>';
+    else chip='<span class="todo-chip next">'+(it.f-d)+' 天后</span>';
+    h+='<div class="todo-row '+(st==='done'?'done':'')+'" data-id="'+it.id+'">'
+      +'<div class="todo-n">'+(i+1)+'</div>'
+      +'<div class="todo-b"><div class="todo-t">'+(it.hard?'🔒 ':'')+esc(it.title)+'</div>'
+      +'<div class="todo-a">'+esc(it.act||'')+'</div></div>'+chip+'</div>';
+  });
+  document.getElementById('todo3').innerHTML=h;
+}
+
+/* ================= 医院卡 ================= */
+function renderHosp(){
+  var t=hosp.tel||'', mapUrl='https://uri.amap.com/search?keyword='+encodeURIComponent(hosp.addr||hosp.name);
+  var h='<div class="hosp-t">🏥 '+esc(hosp.name)+'<button class="edit" id="hospEdit">改</button></div>'
+    +'<div class="hosp-a">📍 '+esc(hosp.addr)+'</div>'
+    +(hosp.note?'<div class="hosp-a" style="margin-top:3px">'+esc(hosp.note)+'</div>':'')
+    +'<div class="hosp-btns">'
+    +'<a class="hot" href="tel:'+esc(t)+'">📞 打给产科</a>'
+    +'<a href="'+mapUrl+'">🧭 导航过去</a>'
+    +'</div>';
+  document.getElementById('hospCard').innerHTML=h;
+  document.getElementById('alertHosp').innerHTML=h.replace('id="hospEdit"','');
+  var btn=document.getElementById('hospEdit');
+  if(btn) btn.onclick=function(e){ e.stopPropagation(); openSet(); };
+}
+
+/* ================= 时间线 ================= */
+function matchKW(it){
+  if(!kw) return true;
+  var s=(it.title+' '+(it.act||'')+' '+it.w+' '+it.ul.join(' ')).toLowerCase();
+  return s.indexOf(kw.toLowerCase())>-1;
+}
+function renderTL(){
+  var box=document.getElementById('sec-tl');
+  if(!lmp){ box.innerHTML='<div class="center">请先点右上角「设置」输入末次月经第一天</div>'; return; }
+  var d=days(), out='', seen={}, curG=null, firstNow=null;
+  TL.forEach(function(it){
+    var st=statusOf(it);
+    if(!matchKW(it)) return;
+    if(filter==='now' && st!=='now') return;
+    if(filter==='late' && st!=='late') return;
+    if(filter==='done' && st!=='done') return;
+    if(filter==='soon'){ if(st==='done') return; if(!(it.t>=d && it.f<=d+30)) return; }
+    if(!seen[it.g]){ seen[it.g]=1; out+='<div class="group-title" data-g="'+it.g+'">'+it.g+'<span>'+periodOf(it.g)+'</span></div>'; }
+    if(st==='now' && !firstNow) firstNow=it.g;
+    out+=itemHTML(it,st,d);
+  });
+  if(!out){ out='<div class="center">这个条件下暂时没有事项</div>'; }
+  box.innerHTML=out;
+  var n=0;TL.forEach(function(it){if(done[it.id])n++;});
+  document.getElementById('cDone').textContent=n;
+
+  // 标记当前所处的阶段，并首次进入时自动滚过去
+  if(!kw && firstNow){
+    var titles=box.querySelectorAll('.group-title');
+    for(var i=0;i<titles.length;i++){
+      if(titles[i].getAttribute('data-g')===firstNow){ titles[i].classList.add('now'); break; }
+    }
+  }
+  if(!window._scrolled && !kw){
+    var nowEl=box.querySelector('.group-title.now');
+    if(nowEl){ window._scrolled=true; setTimeout(function(){ nowEl.scrollIntoView({block:'start'}); },420); }
+  }
+}
+function itemHTML(it,st,d){
+  var rel = st==='done' ? '<span class="badge b-done">✓ 已完成</span>'
+          : st==='now' ? '<span class="badge b-now">剩 '+Math.max(0,it.t-d)+' 天</span>'
+          : st==='late' ? '<span class="badge b-late">已过窗口</span>'
+          : '<span class="badge b-next">'+(it.f-d)+' 天后开始</span>';
+  return '<div class="item c-'+it.c+' '+(st==='done'?'done':'')+' '+(it.hard?'hard':'')+'" data-id="'+it.id+'">'
+    +'<div class="ring">'+(st==='done'?'✓':'')+'</div>'
+    +'<div class="it-body">'
+    +'<span class="it-week">'+it.w+'</span>'+(it.hard?'<span class="badge b-lock">🔒 错过不能补</span>':'')+rel
+    +'<div class="it-title">'+it.title+'</div>'
+    +'<div class="it-date">'+fmtS(addD(lmp,it.f))+' → '+fmtS(addD(lmp,it.t))+'</div>'
+    +'<ul class="it-ul">'+it.ul.map(function(x){return '<li'+(x.indexOf('<b>')===0?' class="hot"':'')+'>'+x+'</li>';}).join('')+'</ul>'
+    +'</div></div>';
+}
+function periodOf(g){
+  if(g.indexOf('早期')>-1) return '1–13 周';
+  if(g.indexOf('中期')>-1) return '14–27 周';
+  if(g.indexOf('晚期')>-1) return '28–40 周';
+  return '分娩前后';
+}
+
+/* ================= 办事 ================= */
+function renderGov(){
+  var h='<div class="sec-h">上海本地必办事项（按时间排序，浦东通用；具体材料以当期公告为准）</div>';
+  GOV.forEach(function(g,i){
+    var hit = kw && ((g.t+g.where+JSON.stringify(g.d)).toLowerCase().indexOf(kw.toLowerCase())>-1);
+    h+='<div class="gov'+(hit?' hit':'')+'"><h3>'+(i+1)+'. '+g.t+'</h3><div class="meta">'+g.w+' · '+g.where+'</div><dl>';
+    g.d.forEach(function(p){h+='<dt>'+p[0]+'</dt><dd>'+p[1]+'</dd>';});
+    h+='</dl></div>';
+  });
+  h+='<div class="note"><b>来源：</b>上海市医保局等四部门《关于进一步提升本市生育医疗费用保障有关政策的通知》（2026.10.1 施行）、沪医保规〔2026〕5 号、《上海市人口与计划生育条例》、国家育儿补贴制度（2025.1.1 起）、上海市"出生一件事"联办。政策会更新，办理前请以随申办／社区／医院当期口径为准。</div>';
+  document.getElementById('sec-gov').innerHTML=h;
+}
+
+/* ================= 待产包 ================= */
+var bagFilter='all';
+function renderBag(){
+  var total=0, got=0, goTotal=0, goGot=0;
+  BAG.forEach(function(grp,gi){
+    grp.items.forEach(function(it,ii){
+      var k=gi+'-'+ii, on=!!bag[k];
+      total++; if(on) got++;
+      if(it[2]==='go'){ goTotal++; if(on) goGot++; }
+    });
+  });
+  var pct=total?Math.round(got/total*100):0;
+  var h='<div class="bag-head">'
+    +'<div class="n">'+got+' <small>/ '+total+' 件已备齐 · '+pct+'%</small></div>'
+    +'<div class="bag-bar"><i style="width:'+pct+'%"></i></div>'
+    +'<div class="bag-tip">🚗 <b>发动就带走</b>的小包：'+goGot+' / '+goTotal+' 件　·　36 周前打包好放门口或后备厢<br>'
+    +'按下面的分组勾，进度存在本机</div>'
+    +'<div class="filters" style="padding:10px 0 0">'
+    +'<button class="chip '+(bagFilter==='all'?'on':'')+'" data-b="all">全部</button>'
+    +'<button class="chip '+(bagFilter==='go'?'on':'')+'" data-b="go">🚗 发动就带走</button>'
+    +'<button class="chip '+(bagFilter==='todo'?'on':'')+'" data-b="todo">🔴 还没买</button>'
+    +'</div></div>';
+  BAG.forEach(function(grp,gi){
+    var rows='', any=false;
+    grp.items.forEach(function(it,ii){
+      var k=gi+'-'+ii, on=!!bag[k];
+      if(bagFilter==='go' && it[2]!=='go') return;
+      if(bagFilter==='todo' && on) return;
+      any=true;
+      rows+='<div class="ck-row '+(on?'on':'')+'" data-k="'+k+'">'
+        +'<div class="box">'+(on?'✓':'')+'</div>'
+        +'<div class="lb">'+it[0]+(it[2]==='go'?'<span class="tag-go">带走</span>':'')+(it[1]?'<small>'+it[1]+'</small>':'')+'</div></div>';
+    });
+    if(any) h+='<div class="group-title">'+grp.g+'</div><div class="ck">'+rows+'</div>';
+  });
+  document.getElementById('sec-bag').innerHTML=h;
+}
+
+/* ================= 胎动计数器 ================= */
+var fmSeg='mor', fmRun=null, fmTick=null;
+var SEG_NAME={mor:'早上',mid:'中午',eve:'晚上'};
+function fmToday(){ return toStr(new Date()); }
+function renderFM(){
+  var today=fmToday(), rec=fm[today]||{mor:0,mid:0,eve:0,full:0};
+  document.getElementById('sMor').textContent=rec.mor>0?rec.mor+' 次':'–';
+  document.getElementById('sMid').textContent=rec.mid>0?rec.mid+' 次':'–';
+  document.getElementById('sEve').textContent=rec.eve>0?rec.eve+' 次':'–';
+  var btn=document.getElementById('fmBtn'), num=document.getElementById('fmNum'), lab=document.getElementById('fmLabel');
+  if(fmRun){
+    btn.className='big-btn go'; num.textContent=fmRun.n; lab.textContent='动了一次，点我 +1';
+  }else{
+    btn.className='big-btn'; num.textContent='+'; lab.textContent='开始数胎动';
+  }
+  document.getElementById('fmStop').style.display = fmRun?'block':'none';
+  var j=document.getElementById('fmJudge'), sum=(rec.mor||0)+(rec.mid||0)+(rec.eve||0), segs=(rec.mor?1:0)+(rec.mid?1:0)+(rec.eve?1:0);
+  if(fmRun){
+    j.className='judge j-wait';
+    j.innerHTML='正在数（'+SEG_NAME[fmSeg]+'）：已 '+fmRun.n+' 次，用时 '+mmss(Date.now()-fmRun.start)+'。每小时 ≥3 次算正常。';
+  }else if(segs===0){
+    j.className='judge j-wait'; j.textContent='三段都记满后，这里会告诉你正不正常';
+  }else{
+    var est=sum*4;
+    if(segs<3){ j.className='judge j-wait'; j.innerHTML='今天已记 '+segs+' 段，合计 '+sum+' 次。三段都记完才好评判（当前估算 12 小时 ≈ '+est+' 次）。'; }
+    else if(est<20){ j.className='judge j-danger'; j.innerHTML='🚨 12 小时估算约 '+est+' 次（&lt;20）。<b>立刻去医院</b>，别等到明天。'; }
+    else if(est<30){ j.className='judge j-warn'; j.innerHTML='⚠️ 12 小时估算约 '+est+' 次（20–30），偏少。再数 1 小时确认；仍偏少或明显少于平时 → 去医院。'; }
+    else { j.className='judge j-ok'; j.innerHTML='✅ 12 小时估算约 '+est+' 次，正常范围。继续保持每天数。'; }
+  }
+  var lg='', keys=Object.keys(fm).sort().reverse().slice(0,7);
+  keys.forEach(function(k){
+    var r=fm[k], s=(r.mor||0)+(r.mid||0)+(r.eve||0);
+    lg+='<div class="log-row"><span>'+k+'　早 '+(r.mor||'–')+' · 中 '+(r.mid||'–')+' · 晚 '+(r.eve||'–')+'</span><span>合计 '+s+'</span></div>';
+  });
+  document.getElementById('fmLog').innerHTML = lg?('<div style="font-size:12px;color:#94837A;margin-bottom:5px;font-weight:700">最近记录</div>'+lg):'';
+  if(fmRun){
+    document.getElementById('fmTimer').innerHTML='本次已用 <b>'+mmss(Date.now()-fmRun.start)+'</b> · 满 1 小时会自动停';
+  }else{
+    document.getElementById('fmTimer').textContent='还没开始 · 选一个时段，点上面的圆按钮开始';
+  }
+}
+function mmss(ms){
+  var s=Math.floor(ms/1000), m=Math.floor(s/60);
+  return m+' 分 '+('0'+(s%60)).slice(-2)+' 秒';
+}
+function fmToggle(){
+  if(fmRun){
+    var n=fmRun.n, today=fmToday();
+    fm[today]=fm[today]||{mor:0,mid:0,eve:0};
+    fm[today][fmSeg]=Math.max(fm[today][fmSeg]||0, n);
+    localStorage.setItem(KEY_FM,JSON.stringify(fm));
+    fmRun=null; clearInterval(fmTick); fmTick=null;
+    toast('已保存：'+SEG_NAME[fmSeg]+' '+n+' 次');
+  }else{
+    fmRun={seg:fmSeg,start:Date.now(),n:0};
+    fmTick=setInterval(function(){
+      if(!fmRun){clearInterval(fmTick);return;}
+      if(Date.now()-fmRun.start>=3600000){ fmToggle(); return; }
+      renderFM();
+    },1000);
+  }
+  renderFM();
+}
+function fmPlus(){
+  if(!fmRun){ fmToggle(); return; }
+  fmRun.n++;
+  var b=document.getElementById('fmBtn');
+  b.style.transform='scale(.9)'; setTimeout(function(){b.style.transform='';},140);
+  renderFM();
+}
+
+/* ================= 宫缩计时器 ================= */
+var ucCur=null, ucTick=null, ucLastStart=null;
+function renderUC(){
+  var btn=document.getElementById('ucBtn'), num=document.getElementById('ucNum'), lab=document.getElementById('ucLabel');
+  if(ucCur){
+    btn.className='big-btn stop'; num.textContent='■'; lab.textContent='这次结束了';
+  }else{
+    btn.className='big-btn'; num.textContent='+'; lab.textContent='开始一次宫缩';
+  }
+  var tm=document.getElementById('ucTimer');
+  if(ucCur) tm.innerHTML='本次持续 <b>'+mmss(Date.now()-ucCur.start)+'</b>';
+  else if(ucLastStart) tm.innerHTML='距上次开始 <b>'+mmss(Date.now()-ucLastStart)+'</b>　（下次肚子一紧就点）';
+  else tm.textContent='还没开始';
+
+  var j=document.getElementById('ucJudge');
+  if(uc.length===0){ j.className='judge j-wait'; j.textContent='记录满 3 次后会自动判断要不要出发'; }
+  else{
+    var last=uc.slice(-3), ok=last.length>=3;
+    var gaps=[]; for(var i=1;i<uc.length;i++) gaps.push((uc[i].s-uc[i-1].s)/60000);
+    var avg=gaps.length?gaps.reduce(function(a,b){return a+b;},0)/gaps.length:0;
+    var avgDur=uc.reduce(function(a,b){return a+b.dur;},0)/uc.length/1000;
+    if(ok && gaps.slice(-3).every(function(g){return g<=6;}) && avgDur>=45){
+      j.className='judge j-danger';
+      j.innerHTML='🚨 <b>规律了：间隔约 '+avg.toFixed(1)+' 分钟、每次约 '+Math.round(avgDur)+' 秒 —— 出发去医院。</b><br>顺手带上待产包和证件袋，破水就平躺垫高臀部。';
+    }else if(gaps.length>=1 && avg<=10){
+      j.className='judge j-warn';
+      j.innerHTML='⚠️ 间隔约 '+avg.toFixed(1)+' 分钟、持续约 '+Math.round(avgDur)+' 秒，正在变规律。继续记录，收拾东西准备出发。';
+    }else{
+      j.className='judge j-wait';
+      j.innerHTML=uc.length+' 次记录 · 平均间隔 '+(gaps.length?avg.toFixed(1)+' 分钟':'—')+' · 平均持续 '+Math.round(avgDur)+' 秒。<br>还没规律，先休息、洗个澡、吃点东西。';
+    }
+  }
+  var lg='';
+  uc.slice().reverse().slice(0,8).forEach(function(r,i){
+    var idx=uc.length-i;
+    lg+='<div class="log-row"><span>第 '+idx+' 次　'+new Date(r.s).toTimeString().slice(0,5)+'</span><span>持续 '+Math.round(r.dur/1000)+' 秒'+(r.gap?' · 间隔 '+Math.round(r.gap/60000)+' 分':'')+'</span></div>';
+  });
+  document.getElementById('ucLog').innerHTML = lg?('<div style="font-size:12px;color:#94837A;margin-bottom:5px;font-weight:700">本次记录</div>'+lg):'';
+}
+function ucToggle(){
+  var now=Date.now();
+  if(ucCur){
+    var dur=now-ucCur.start;
+    uc.push({s:ucCur.start, dur:dur, gap: ucLastStart? (ucCur.start-ucLastStart):0});
+    localStorage.setItem(KEY_UC,JSON.stringify(uc));
+    ucCur=null; clearInterval(ucTick); ucTick=null;
+  }else{
+    ucCur={start:now}; ucLastStart=now;
+    ucTick=setInterval(function(){ if(!ucCur){clearInterval(ucTick);return;} renderUC(); },1000);
+  }
+  renderUC();
+}
+
+/* ================= 离线 & 备份 ================= */
+(function(){
+  var ua=navigator.userAgent||'';
+  if(ua.indexOf('MicroMessenger')>-1){
+    var b=document.createElement('div');
+    b.style.cssText='position:fixed;left:0;right:0;top:0;z-index:200;background:#4A3B33;color:#fff;font-size:13px;line-height:1.6;padding:11px 14px;display:flex;gap:10px;align-items:center;box-shadow:0 2px 10px rgba(0,0,0,.16)';
+    b.innerHTML='<span style="font-size:16px">☝️</span><span>请点右上角 <b>···</b> → <b>在浏览器中打开</b>，才能存到手机桌面、断网也能看</span>';
+    document.body.insertBefore(b,document.body.firstChild);
+  }
+})();
+if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
+  navigator.serviceWorker.register('sw.js').then(function(r){ r.update(); }).catch(function(){});
+  var refreshed=false;
+  navigator.serviceWorker.addEventListener('controllerchange',function(){
+    if(refreshed) return; refreshed=true;
+    toast('已更新到最新版本 ✓');
+  });
+}
+function saveCopy(){
+  try{
+    var html='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
+    var blob=new Blob([html],{type:'text/html;charset=utf-8'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download='孕程表.html';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(a.href);},2000);
+  }catch(e){ alert('保存失败，可换用系统浏览器再试'); }
+}
+
+/* ================= 设置弹层 ================= */
+function openSet(){
+  if(lmp) document.getElementById('inpLmp').value=toStr(lmp);
+  document.getElementById('inpHospName').value=hosp.name||'';
+  document.getElementById('inpHospTel').value=hosp.tel||'';
+  document.getElementById('inpHospAddr').value=hosp.addr||'';
+  document.getElementById('inpHospNote').value=hosp.note||'';
+  document.getElementById('mask').classList.add('on');
+}
+function closeSet(){ document.getElementById('mask').classList.remove('on'); }
+
+/* ================= 交互 ================= */
+document.addEventListener('click',function(e){
+  var t=e.target;
+  var row=t.closest?t.closest('.item'):null;
+  if(row){ var id=row.getAttribute('data-id'); done[id]=!done[id]; localStorage.setItem(KEY_DONE,JSON.stringify(done)); renderTL(); renderTop3(); return; }
+  var td=t.closest?t.closest('.todo-row'):null;
+  if(td){ var id2=td.getAttribute('data-id'); done[id2]=!done[id2]; localStorage.setItem(KEY_DONE,JSON.stringify(done)); renderTL(); renderTop3(); return; }
+  var ck=t.closest?t.closest('.ck-row'):null;
+  if(ck){ var k=ck.getAttribute('data-k'); bag[k]=!bag[k]; localStorage.setItem(KEY_BAG,JSON.stringify(bag)); renderBag(); return; }
+  var tb=t.closest?t.closest('.tab'):null;
+  if(tb){
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('on');});
+    tb.classList.add('on');
+    var s=tb.getAttribute('data-s');
+    document.querySelectorAll('.sec').forEach(function(x){x.classList.remove('on');});
+    document.getElementById('sec-'+s).classList.add('on');
+    var showTL=(s==='tl');
+    document.getElementById('filters').style.display=showTL?'flex':'none';
+    document.getElementById('search').style.display=(showTL||s==='gov')?'block':'none';
+    document.getElementById('todo3').style.display=showTL?'block':'none';
+    document.getElementById('hospCard').style.display=showTL?'block':'none';
+    window.scrollTo(0,0); return;
+  }
+  var ch=t.closest?t.closest('.chip'):null;
+  if(ch){
+    var b=ch.getAttribute('data-b');
+    if(b){ bagFilter=b; renderBag(); return; }
+    document.querySelectorAll('#filters .chip').forEach(function(x){x.classList.remove('on');});
+    ch.classList.add('on'); filter=ch.getAttribute('data-f'); renderTL(); return;
+  }
+  var sg=t.closest?t.closest('.seg'):null;
+  if(sg){
+    document.querySelectorAll('.seg').forEach(function(x){x.classList.remove('on');});
+    sg.classList.add('on'); fmSeg=sg.getAttribute('data-seg');
+    if(fmRun){ fmRun.seg=fmSeg; }
+    renderFM(); return;
+  }
+});
+
+document.getElementById('fmBtn').onclick=function(){ if(fmRun){ fmPlus(); } else { fmToggle(); } };
+document.getElementById('fmStop').onclick=function(){ if(fmRun){ fmToggle(); } };
+document.getElementById('ucBtn').onclick=function(){ ucToggle(); };
+document.getElementById('ucClear').onclick=function(){ uc=[]; localStorage.setItem(KEY_UC,'[]'); ucLastStart=null; renderUC(); toast('已清空'); };
+document.getElementById('ucCall').onclick=function(){ location.href='tel:'+(hosp.tel||''); };
+
+document.getElementById('search').addEventListener('input',function(){
+  kw=this.value.trim();
+  if(kw){ document.querySelectorAll('#filters .chip').forEach(function(x){x.classList.remove('on');}); filter='all';
+    document.querySelector('#filters .chip').classList.add('on'); }
+  renderTL(); renderGov();
+});
+document.getElementById('btnSet').onclick=openSet;
+document.getElementById('btnCancel').onclick=closeSet;
+document.getElementById('btnCopy').onclick=function(){ saveCopy(); };
+document.getElementById('mask').onclick=function(e){ if(e.target===this) closeSet(); };
+document.getElementById('btnSave').onclick=function(){
+  var a=document.getElementById('inpLmp').value,
+      b=document.getElementById('inpEdd').value,
+      cw=parseFloat(document.getElementById('inpWk').value);
+  if(b){ lmp=addD(parseD(b),-280); isDefault=false; }
+  else if(!isNaN(cw) && cw>0){ lmp=addD(today0(),-Math.round(cw*7)); isDefault=false; }
+  else if(a){ lmp=parseD(a); isDefault=false; }
+  hosp.name=document.getElementById('inpHospName').value||HOSP_DEF.name;
+  hosp.tel=document.getElementById('inpHospTel').value||HOSP_DEF.tel;
+  hosp.addr=document.getElementById('inpHospAddr').value||HOSP_DEF.addr;
+  hosp.note=document.getElementById('inpHospNote').value||'';
+  save(); closeSet();
+  renderHero(); renderTL(); renderTop3(); renderHosp();
+  toast('已保存');
+};
+document.getElementById('btnExport').onclick=function(){
+  var data={v:1,lmp:toStr(lmp),done:done,bag:bag,hosp:hosp};
+  var s=JSON.stringify(data);
+  try{ s=btoa(unescape(encodeURIComponent(s))); }catch(e){}
+  var box=document.getElementById('syncBox');
+  box.value=s; box.select();
+  try{ document.execCommand('copy'); toast('已复制，发给对方就行'); }catch(e){ toast('已生成，长按全选复制'); }
+};
+document.getElementById('btnImport').onclick=function(){
+  var s=document.getElementById('syncBox').value.trim();
+  if(!s){ toast('先把对方发的文字粘进来'); return; }
+  try{
+    var raw=s;
+    if(raw.indexOf('{')!==0){ raw=decodeURIComponent(escape(atob(raw))); }
+    var o=JSON.parse(raw);
+    if(!o || !o.lmp) throw new Error('bad');
+    lmp=parseD(o.lmp); isDefault=false;
+    done=o.done||{}; bag=o.bag||{}; if(o.hosp) hosp=o.hosp;
+    save(); closeSet();
+    renderHero(); renderTL(); renderTop3(); renderHosp(); renderBag();
+    toast('导入成功，进度已同步');
+  }catch(e){ toast('这段文字不对，请重新复制完整'); }
+};
+
+/* ================= 启动 ================= */
+load();
+renderHero(); renderTop3(); renderHosp(); renderTL(); renderGov(); renderBag(); renderFM(); renderUC();
+</script>
+</body>
+</html>
