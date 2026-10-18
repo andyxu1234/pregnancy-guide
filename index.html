@@ -115,6 +115,20 @@ a{color:inherit}
 .hint-default{margin:0 14px 10px;background:#FFF8E8;border:1px dashed #F0D9A8;border-radius:var(--r-md);padding:9px 12px;font-size:12.5px;color:#8A6A3A;display:none}
 .hint-default.on{display:block}
 
+/* ---------- 微信内提示卡（只在微信里出现） ---------- */
+.wxtip{
+  background:linear-gradient(145deg,#FFF3E6,#FFE9DC);
+  border:1px solid #F6D9BE;border-radius:var(--r-lg);
+  padding:13px 14px;margin:12px 0 0;box-shadow:var(--sh-1);
+}
+.wxtip-h{font-size:14.5px;font-weight:800;color:#B57A20;display:flex;align-items:center;gap:6px}
+.wxtip p{margin:7px 0 0;font-size:12.5px;color:#7A6039;line-height:1.7}
+.wxtip b{color:#8A5A16}
+.wxtip-b{display:flex;gap:8px;margin-top:11px}
+.wxtip-b button{flex:1;border:1px solid #F0D3AC;background:#fff;border-radius:var(--r-md);padding:10px;font-size:13px;font-weight:700;color:#8A5A16;font-family:inherit;min-height:44px}
+.wxtip-b button.pri{background:#E9A23B;border-color:#E9A23B;color:#fff}
+.wxtip-b button:active{transform:scale(.97)}
+
 /* ---------- TOP3 待办卡 ---------- */
 .todo{
   background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
@@ -337,6 +351,18 @@ a{color:inherit}
 <div class="atmos"></div>
 <div class="grain"></div>
 
+<div class="wrap" id="wxTip" style="display:none">
+  <div class="wxtip">
+    <div class="wxtip-h">📱 你在微信里打开 —— 全部功能都能用</div>
+    <p>但微信内<b>加不了手机桌面图标</b>，也<b>断网打不开</b>（微信不保存页面，还会定期清缓存，勾过的进度可能丢）。</p>
+    <p>最快打开方式：右上角 <b>···</b> → <b>收藏</b>，之后从「我 → 收藏」一秒开；也可以发到<b>文件传输助手</b>里置顶，或<b>发给老婆</b>。</p>
+    <div class="wxtip-b">
+      <button id="wxBackup">📋 复制进度备份码</button>
+      <button class="pri" id="wxOk">知道了，别再提示</button>
+    </div>
+  </div>
+</div>
+
 <header class="wrap">
   <div class="hero rise">
     <div class="hero-baby" aria-hidden="true">👶</div>
@@ -493,11 +519,20 @@ a{color:inherit}
     </div>
     <div class="sec-h">怎么在手机上长期用它</div>
     <div class="gov">
-      <dl>
-        <dt>第一步</dt><dd>用手机<b>自带浏览器</b>（iPhone 用 Safari，安卓用 Chrome）打开链接，别用微信里直接打开</dd>
+      <dl id="wxUse" style="display:none">
+        <dt>📱 在微信里用（你现在的用法）</dt>
+        <dd>· <b>右上角 ··· → 收藏</b>：之后从「我 → 收藏」一秒打开，这是最快的方式</dd>
+        <dd>· 或发到<b>文件传输助手</b>并置顶，也可以<b>直接发给老婆</b>，她点开就能用</dd>
+        <dd>· <b>微信会定期清缓存</b>，勾过的进度可能丢 → 记得偶尔点顶部「📋 复制进度备份码」，粘到备忘录或发给对方</dd>
+        <dd>· 真丢了也别慌：「⚙ 设置 → 粘贴备份码 → 导入」，一步恢复全部进度</dd>
+        <dd>· 想要<b>断网也能开 + 桌面图标</b>：右上角 ··· → 在浏览器中打开 → 添加到主屏幕（这条是可选的）</dd>
+      </dl>
+      <dl id="webUse">
+        <dt>第一步</dt><dd>用手机<b>自带浏览器</b>（iPhone 用 Safari，安卓用 Chrome）打开链接</dd>
         <dt>第二步</dt><dd>iPhone：底部「分享」→ 添加到主屏幕；安卓：右上角 ⋮ → 添加到主屏幕／安装应用</dd>
         <dt>第三步</dt><dd>之后<b>断网、链接过期都能打开</b>，页面已经存在手机里，图标就在桌面</dd>
-        <dt>备份</dt><dd>「设置」→「把整页存一份到手机」，会下载一个 孕程表.html，永久可用</dd>
+        <dt>备份</dt><dd>「⚙ 设置」→「把整页存一份到手机」，会下载一个 孕程表.html，永久可用</dd>
+        <dt>同步</dt><dd>「⚙ 设置」→ 导出进度 → 复制那段文字发给对方，对方粘贴导入即可</dd>
       </dl>
     </div>
     <div class="note">以上为通用医学常识整理，<b>任何不适以产科医生判断为准</b>。政策条款可能调整，办理前以"随申办"／社区／医院当期公告为准。</div>
@@ -848,19 +883,35 @@ function renderTop3(){
 }
 
 /* ================= 医院卡 ================= */
+function copyText(s,okMsg){
+  var ta=document.createElement('textarea');
+  ta.value=s; ta.style.position='fixed'; ta.style.left='-9999px';
+  document.body.appendChild(ta); ta.select();
+  var ok=false;
+  try{ ok=document.execCommand('copy'); }catch(e){}
+  document.body.removeChild(ta);
+  toast(ok?okMsg:('复制失败：'+s));
+}
 function renderHosp(){
-  var t=hosp.tel||'', mapUrl='https://uri.amap.com/search?keyword='+encodeURIComponent(hosp.addr||hosp.name);
+  var t=hosp.tel||'', addr=hosp.addr||hosp.name;
+  var mapUrl='https://uri.amap.com/search?keyword='+encodeURIComponent(addr);
+  // 微信内跳外部地图常被拦，改成复制地址，粘到地图 App 一样能用
+  var nav = inWX ? '<a class="navbtn" href="javascript:;">🧭 复制地址</a>'
+                 : '<a href="'+mapUrl+'">🧭 导航过去</a>';
   var h='<div class="hosp-t">🏥 '+esc(hosp.name)+'<button class="edit" id="hospEdit">改</button></div>'
     +'<div class="hosp-a">📍 '+esc(hosp.addr)+'</div>'
     +(hosp.note?'<div class="hosp-a" style="margin-top:3px">'+esc(hosp.note)+'</div>':'')
     +'<div class="hosp-btns">'
-    +'<a class="hot" href="tel:'+esc(t)+'">📞 打给产科</a>'
-    +'<a href="'+mapUrl+'">🧭 导航过去</a>'
+    +'<a class="hot" href="tel:'+esc(t)+'">📞 打给产科</a>'+nav
     +'</div>';
   document.getElementById('hospCard').innerHTML=h;
   document.getElementById('alertHosp').innerHTML=h.replace('id="hospEdit"','');
   var btn=document.getElementById('hospEdit');
   if(btn) btn.onclick=function(e){ e.stopPropagation(); openSet(); };
+  var navs=document.querySelectorAll('.navbtn');
+  for(var i=0;i<navs.length;i++){
+    navs[i].onclick=function(e){ e.preventDefault(); copyText(addr,'地址已复制，粘到地图 App 里'); };
+  }
 }
 
 /* ================= 时间线 ================= */
@@ -1097,16 +1148,24 @@ function ucToggle(){
   renderUC();
 }
 
-/* ================= 离线 & 备份 ================= */
+/* ================= 微信内适配 & 备份 ================= */
+var inWX=false;
 (function(){
   var ua=navigator.userAgent||'';
-  if(ua.indexOf('MicroMessenger')>-1){
-    var b=document.createElement('div');
-    b.style.cssText='position:fixed;left:0;right:0;top:0;z-index:200;background:#4A3B33;color:#fff;font-size:13px;line-height:1.6;padding:11px 14px;display:flex;gap:10px;align-items:center;box-shadow:0 2px 10px rgba(0,0,0,.16)';
-    b.innerHTML='<span style="font-size:16px">☝️</span><span>请点右上角 <b>···</b> → <b>在浏览器中打开</b>，才能存到手机桌面、断网也能看</span>';
-    document.body.insertBefore(b,document.body.firstChild);
+  inWX = ua.indexOf('MicroMessenger')>-1;
+  if(inWX){
+    document.body.classList.add('in-wx');
+    if(localStorage.getItem('pg_wxread')!=='1'){
+      document.getElementById('wxTip').style.display='block';
+    }
   }
 })();
+function backupCode(){
+  var data={v:1,lmp:toStr(lmp),done:done,bag:bag,hosp:hosp};
+  var s=JSON.stringify(data);
+  try{ s=btoa(unescape(encodeURIComponent(s))); }catch(e){}
+  return s;
+}
 if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
   navigator.serviceWorker.register('sw.js').then(function(r){ r.update(); }).catch(function(){});
   var refreshed=false;
@@ -1116,6 +1175,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
   });
 }
 function saveCopy(){
+  if(inWX){ toast('微信里不能下载文件，请点「📋 复制进度备份码」'); return; }
   try{
     var html='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
     var blob=new Blob([html],{type:'text/html;charset=utf-8'});
@@ -1178,6 +1238,16 @@ document.addEventListener('click',function(e){
 
 document.getElementById('fmBtn').onclick=function(){ if(fmRun){ fmPlus(); } else { fmToggle(); } };
 document.getElementById('fmStop').onclick=function(){ if(fmRun){ fmToggle(); } };
+
+// 微信内：关掉提示 + 复制备份码（微信里不能下载文件，只能靠文本互通）
+document.getElementById('wxOk').onclick=function(){
+  localStorage.setItem('pg_wxread','1');
+  document.getElementById('wxTip').style.display='none';
+  toast('好，之后不再提示');
+};
+document.getElementById('wxBackup').onclick=function(){
+  copyText(backupCode(),'已复制 · 粘到备忘录，或发给老婆保存');
+};
 document.getElementById('ucBtn').onclick=function(){ ucToggle(); };
 document.getElementById('ucClear').onclick=function(){ uc=[]; localStorage.setItem(KEY_UC,'[]'); ucLastStart=null; renderUC(); toast('已清空'); };
 document.getElementById('ucCall').onclick=function(){ location.href='tel:'+(hosp.tel||''); };
@@ -1208,9 +1278,7 @@ document.getElementById('btnSave').onclick=function(){
   toast('已保存');
 };
 document.getElementById('btnExport').onclick=function(){
-  var data={v:1,lmp:toStr(lmp),done:done,bag:bag,hosp:hosp};
-  var s=JSON.stringify(data);
-  try{ s=btoa(unescape(encodeURIComponent(s))); }catch(e){}
+  var s=backupCode();
   var box=document.getElementById('syncBox');
   box.value=s; box.select();
   try{ document.execCommand('copy'); toast('已复制，发给对方就行'); }catch(e){ toast('已生成，长按全选复制'); }
@@ -1234,6 +1302,11 @@ document.getElementById('btnImport').onclick=function(){
 /* ================= 启动 ================= */
 load();
 renderHero(); renderTop3(); renderHosp(); renderTL(); renderGov(); renderBag(); renderFM(); renderUC();
+if(inWX){
+  var wu=document.getElementById('wxUse'), bu=document.getElementById('webUse');
+  if(wu) wu.style.display='block';
+  if(bu) bu.style.display='none';
+}
 </script>
 </body>
 </html>
